@@ -3,7 +3,7 @@
 (ql:quickload "uiop" :silent t)
 
 (defconstant +day-number+ 1)
-;(defconstant +working-dir+ #p"c:/Users/kdhoka/OneDrive - Emerson/Documents/AoC/2023")
+
 (defconstant +working-dir+ (uiop:truenamize "~/aoc_2023/"))
 (defconstant +input-name-template+ "2023d~dinput.txt")
 
@@ -46,7 +46,6 @@
         number-as-string)
     (setf first-digit (car (elt (sort digit-location-l '< :key 'cdr) 0)))
     (setf last-digit (car (elt (sort digit-location-r '> :key 'cdr) 0)))
-    ;(setf last-digit (car (elt )))
     (setf number-as-string (concatenate 'string (string first-digit) (string last-digit)))
     ;(format t "~&~a~&F: ~a L: ~a~&" line first-digit last-digit)
     (parse-integer number-as-string)))
