@@ -17,7 +17,7 @@
     "...$.*...."
     ".664.598.."))
 
-(defconstant +num-pat+ (ppcre:create-scanner "(?<=[^\\W])\\d+(?=[\\W$])"))
+(defconstant +num-pat+ (ppcre:create-scanner "(?<=[\\W^])\\d+(?=[\\W$])"))
 
 (defconstant +look-dir+ '((-1 -1)(0 -1)(1 -1)
                           (-1 0)       (1 0)
@@ -50,8 +50,14 @@
         (num-locs (mapcar #'find-all-nums lines)))
     (loop for line-syms in sym-locs
           for lidx from 0
-          unless (null syms)
-            do (dolist (sp line-syms (*result*))
+          unless (null line-syms)
+          do (dolist (sp line-syms (*result*))
+               (let ((sym (second sp))
+                     (pos (first sp)))
                  (dolist (ld +look-dir+)
-                   ()))
+                   (let* ((dx (first ld))
+                          (dy (second ld))
+                          (look-x (+ pos dx))
+                          (look-y (+ lidx dy)))
+                     ()))))
           end)))
