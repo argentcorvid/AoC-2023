@@ -39,9 +39,17 @@
     (ppcre:do-matches (mst mend +num-pat+ line
                        (unless (null locs)
                          (reverse locs)))
-      (push (list
-             (parse-integer line :start (- mst 1) :end mend)
-             (list (- mst 1) (- mend 1))) locs))))
+        (push (list
+             (parse-integer line
+                            :start (- mst 1)
+                            :end mend)
+             (list (- mst 1)
+                   (- mend 1))) locs)))
+
+  (defun within-1 (range num)
+    (<= (- (first range) 1)
+        num
+        (+ (second range) 1))))
 
 (defun p1 (lines)
   (let (;;(lidx 0)
@@ -53,17 +61,17 @@
     (loop for line-syms in sym-locs
           for lidx from 0
           unless (null line-syms)
-          do (dolist (sp line-syms (part-sum))
-               (let ((sym (first sp))
-                     (pos (second sp)))
-                 (dolist (ld +look-dir+)
-                   (let ((look-x (+ pos (first ld)))
-                          (look-y (+ lidx (second ld))))
-                     (if (and (>= look-x 0)
-                              (>= look-y 0)
-                              (< look-y max-lines)
-                              (< look-x max-wide))
-                         (dolist (look-num (nth look-y num-locs))
-                           ())
-                         ())))))
+            do (dolist (sp line-syms (part-sum))
+                 (let ((sym (first sp))
+                       (pos (second sp)))
+                   (dolist (ld +look-dir+)
+                     (let ((look-x (+ pos (first ld)))
+                           (look-y (+ lidx (second ld))))
+                       (if (and (>= look-x 0)
+                                (>= look-y 0)
+                                (< look-y max-lines)
+                                (< look-x max-wide))
+                           (dolist (look-num (nth look-y num-locs))
+                             (if (within-1 look-num pos )
+                                 (incf part-sum (first look-num)))))))))
           end)))
