@@ -39,19 +39,23 @@
     (ppcre:do-matches (mst mend +num-pat+ line
                        (unless (null locs)
                          (reverse locs)))
-        (push (list
-             (parse-integer line
-                            :start (- mst 1)
-                            :end mend)
-             (list (- mst 1)
-                   (- mend 1))) locs)))
+        (push (list (parse-integer line
+                                   :start  mst 
+                                   :end mend )
+                    (list (- mst 1)
+                          (- mend 1)))
+              locs))))
 
-  (defun within-1 (range num)
+(defun within-1 (range num)
     (<= (- (first range) 1)
         num
-        (+ (second range) 1))))
+        (+ (second range) 1)))
+
+(defun in-range (range num)
+  (<= (first range) num (second range)))
 
 (defun p1 (lines)
+  (step
   (let (;;(lidx 0)
         (part-sum 0)
         (sym-locs (mapcar #'find-all-syms lines))
@@ -61,7 +65,7 @@
     (loop for line-syms in sym-locs
           for lidx from 0
           unless (null line-syms)
-            do (dolist (sp line-syms (part-sum))
+          do (dolist (sp line-syms part-sum)
                  (let ((sym (first sp))
                        (pos (second sp)))
                    (dolist (ld +look-dir+)
@@ -72,6 +76,7 @@
                                 (< look-y max-lines)
                                 (< look-x max-wide))
                            (dolist (look-num (nth look-y num-locs))
-                             (if (within-1 look-num pos )
+                             (if (in-range (second look-num) pos )
                                  (incf part-sum (first look-num)))))))))
-          end)))
+          end)
+    part-sum)))
