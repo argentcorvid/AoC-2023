@@ -56,11 +56,8 @@
 (defun in-range (range num)
   (<= (first range) num (second range)))
 
-(defun p1 (lines)
-  ;; (step
-  (let (;;(lidx 0)
-        (part-sum 0)
-        (sym-locs ()) ;; list of (symbol (line pos)
+(defun parse-input (lines)
+  (let ((sym-locs ()) ;; list of (symbol (line pos)
         (num-locs ()) ;; list of (number (line (start end)))
         (max-lines (length lines))
         (max-wide (length (first lines))))
@@ -80,22 +77,38 @@
           unless (null n-line)
           append (mapcar (lambda (elt) (list (first elt) (list idx (second elt)))) n-line) into nums
           end
-          finally (setf sym-locs syms num-locs nums))
+          finally (setf sym-locs syms
+                        num-locs nums))
     (princ "done")
     (format t "~&number of symbols: ~a, numbers: ~a" (length sym-locs) (length num-locs))
     ;; (format t "~&symbols: ~a" sym-locs)
     ;; (format t "~&numbers: ~a" num-locs)
+    (pairlis '(:n :s) (list num-locs sym-locs))))
 
+(defun p1 (nums-and-syms)
+  (let ((num-locs (rest (assoc :n nums-and-syms)))
+        (sym-locs (rest (assoc :s nums-and-syms))))
     (mapcar (lambda (num) ;; p close need to fix neighbors
               (let ((rng (second (second num)))
                     (ln (first (second num)))
                     (neighbor))
                 (setf neighbor (remove-if-not
                              (lambda (sym)
-                               (and (in-range rng (second sym))
+                               (and (within-1 rng (second sym))
                                     (in-range '(-1 1) (- ln (first sym)))))
                              sym-locs :key #'second))
                (if (null neighbor)
                    0
                    (first num))))
-            num-locs))) ;; )
+            num-locs))) 
+
+(defun go ()
+  (let* ((infile-name (format nil +input-name-template+ +day-number+))
+         (input-lines (uiop:read-file-lines infile-name))
+         (data (parse-input input-lines)))
+    (fresh-line)
+    (princ "part 1: ")
+    (prin1 (reduce #'+ (p1 data)))
+    (fresh-line)
+    (princ "part 2: ")
+    (prin1 (reduce #'* (p2 data)))))
