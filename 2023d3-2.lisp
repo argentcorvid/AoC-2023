@@ -86,5 +86,16 @@
     ;; (format t "~&symbols: ~a" sym-locs)
     ;; (format t "~&numbers: ~a" num-locs)
 
-    (mapcar (lambda (num) ) num-locs)
-    part-sum)) ;; )
+    (mapcar (lambda (num) ;; p close need to fix neighbors
+              (let ((rng (second (second num)))
+                    (ln (first (second num)))
+                    (neighbor))
+                (setf neighbor (remove-if-not
+                             (lambda (sym)
+                               (and (in-range rng (second sym))
+                                    (in-range '(-1 1) (- ln (first sym)))))
+                             sym-locs :key #'second))
+               (if (null neighbor)
+                   0
+                   (first num))))
+            num-locs))) ;; )
