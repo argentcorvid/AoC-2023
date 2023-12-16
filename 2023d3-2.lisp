@@ -58,33 +58,33 @@
 
 (defun p1 (lines)
   ;; (step
-   (let (;;(lidx 0)
-         (part-sum 0)
-         (sym-locs (mapcar #'find-all-syms lines))
-         (num-locs (mapcar #'find-all-nums lines))
-         (max-lines (length lines))
-         (max-wide (length (first lines))))
-     (loop for line-syms in sym-locs
-           for lidx from 0
-           unless (null line-syms)
-             do (dolist (sp line-syms part-sum)
-                  (let ((sym (first sp))
-                        (pos (second sp))
-                        (last-num 0))
-                    (format t "~&doing sym ~a at (~a,~a)" sym pos lidx)
-                    (dolist (ld +look-dir+)
-                      (let ((look-x (+ pos (first ld)))
-                            (look-y (+ lidx (second ld))))
-                        (if (and (>= look-x 0)
-                                 (>= look-y 0)
-                                 (< look-y max-lines)
-                                 (< look-x max-wide))
-                            (dolist (look-num (nth look-y num-locs))
-                              (format t "~&~tlooking at ~a,~a" look-x look-y)
-                              (when (/= (first look-num) last-num)
-                                (cond ((within-1 (second look-num) pos)
-                                       (setf last-num (first look-num))
-                                       (incf part-sum (first look-num))
-                                       (format t " found ~a, adding, sum ~a" (first look-num) part-sum))))))))))
-           end)
-     part-sum));;)
+  (let (;;(lidx 0)
+        (part-sum 0)
+        (sym-locs ()) ;; list of (symbol (line pos)
+        (num-locs ()) ;; list of (number (line (start end)))
+        (max-lines (length lines))
+        (max-wide (length (first lines))))
+    (fresh-line)
+    (princ "collecting")
+    (loop for l in lines
+          for idx from 0
+          with s-line
+          with n-line
+          do (setf s-line (find-all-syms l))
+             (setf n-line (find-all-nums l))
+             (if (= 0 (mod idx 10))
+                 (princ "."))
+          unless (null s-line)
+          append (mapcar (lambda (elt) (list (first elt) (list idx (second elt)))) s-line) into syms
+          end
+          unless (null n-line)
+          append (mapcar (lambda (elt) (list (first elt) (list idx (second elt)))) n-line) into nums
+          end
+          finally (setf sym-locs syms num-locs nums))
+    (princ "done")
+    (format t "~&number of symbols: ~a, numbers: ~a" (length sym-locs) (length num-locs))
+    ;; (format t "~&symbols: ~a" sym-locs)
+    ;; (format t "~&numbers: ~a" num-locs)
+
+    (mapcar (lambda (num) ) num-locs)
+    part-sum)) ;; )
