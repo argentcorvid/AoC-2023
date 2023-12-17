@@ -103,7 +103,7 @@
             num-locs))) 
 
 (defun p2 (data)
-  (let* ((star-locs (mapcar #'rest
+  (let* ((star-locs (mapcar #'cadr
                         (remove-if-not
                          (lambda (item)
                            (equal #\* item))
@@ -115,19 +115,24 @@
     (fresh-line)
     (princ "number of '*': ")
     (princ (length star-locs))
+    (fresh-line)
+    ;; (princ star-locs)
+    
     (setf gears (loop for s in star-locs
                       with neighbors
                       do (setf neighbors (remove-if-not (lambda (num)
+
                                                           (and (within-1 (second num) (second s))
-                                                               (in-range '(-1 1) (- (first s) (first num))))) numbers :key #'rest))
+                                                               (in-range '(-1 1) (- (first s) (first num))))) numbers :key #'cadr))
                       if (= 2 (length neighbors))
                         collect neighbors))
     (fresh-line)
     (princ "number of gears: ")
     (princ (length gears))
+    (fresh-line)
     (setf gear-ratios (mapcar (lambda (g)
-                                (apply #'* (first (first g)) (first (second g))))
-                            gears))))
+                                (funcall #'* (first (first g)) (first (second g))))
+                              gears))))
 
 (defun main ()
   (let* ((infile-name (format nil +input-name-template+ +day-number+))
@@ -138,4 +143,5 @@
     (princ (reduce #'+ (p1 data)))
     (fresh-line)
     (princ "part 2: ")
+    (fresh-line)
     (princ (reduce #'+ (p2 data)))))
