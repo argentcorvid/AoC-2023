@@ -88,7 +88,7 @@
 (defun p1 (nums-and-syms)
   (let ((num-locs (rest (assoc :n nums-and-syms)))
         (sym-locs (rest (assoc :s nums-and-syms))))
-    (mapcar (lambda (num) ;; p close need to fix neighbors
+    (mapcar (lambda (num) 
               (let ((rng (second (second num)))
                     (ln (first (second num)))
                     (neighbor))
@@ -102,13 +102,40 @@
                    (first num))))
             num-locs))) 
 
-(defun go ()
+(defun p2 (data)
+  (let* ((star-locs (mapcar #'rest
+                        (remove-if-not
+                         (lambda (item)
+                           (equal #\* item))
+                         (rest (assoc :s data))
+                         :key #'first)))
+         (numbers (rest (assoc :n data)))
+         gears
+         gear-ratios)
+    (fresh-line)
+    (princ "number of '*': ")
+    (princ (length star-locs))
+    (setf gears (loop for s in star-locs
+                      with neighbors
+                      do (setf neighbors (remove-if-not (lambda (num)
+                                                          (and (within-1 (second num) (second s))
+                                                               (in-range '(-1 1) (- (first s) (first num))))) numbers :key #'rest))
+                      if (= 2 (length neighbors))
+                        collect neighbors))
+    (fresh-line)
+    (princ "number of gears: ")
+    (princ (length gears))
+    (setf gear-ratios (mapcar (lambda (g)
+                                (apply #'* (first (first g)) (first (second g))))
+                            gears))))
+
+(defun main ()
   (let* ((infile-name (format nil +input-name-template+ +day-number+))
          (input-lines (uiop:read-file-lines infile-name))
          (data (parse-input input-lines)))
     (fresh-line)
     (princ "part 1: ")
-    (prin1 (reduce #'+ (p1 data)))
+    (princ (reduce #'+ (p1 data)))
     (fresh-line)
     (princ "part 2: ")
-    (prin1 (reduce #'* (p2 data)))))
+    (princ (reduce #'+ (p2 data)))))
