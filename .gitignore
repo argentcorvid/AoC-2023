@@ -15,3 +15,8 @@
 *.sx32fsl
 *.wx64fsl
 *.wx32fsl
+*.fas
+*.txt
+*~
+*#
+/2023d3.lisp
