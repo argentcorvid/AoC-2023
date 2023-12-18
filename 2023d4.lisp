@@ -28,8 +28,17 @@
                       (mapcar #'parse-integer winning)
                       (mapcar #'parse-integer mine))))
 
-(defun p1 ()
-  ) 
+(defun 2expt (number)
+  (if (>= number 1)
+      (expt 2 (- number 1))
+      0))
+
+(defun p1 (data)
+  (let ((matches-by-card (loop for card in data
+                                collect (intersection (second card) (third card)))))
+    (reduce #'+ (mapcar (lambda (x)
+                          (2expt (length x)))
+                        matches-by-card)))) 
 
 (defun p2 ()
   )
@@ -40,8 +49,8 @@
          (data (parse-input input-lines)))
     (fresh-line)
     (princ "part 1: ")
-    (princ (reduce #'+ (p1 data)))
-    (fresh-line)
-    (princ "part 2: ")
-    (fresh-line)
-    (princ (reduce #'+ (p2 data)))))
+    (princ (p1 data))))
+    ;; (fresh-line)
+    ;; (princ "part 2: ")
+    ;; (fresh-line)
+    ;; (princ (reduce #'+ (p2 data)))))
