@@ -14,7 +14,19 @@
 "Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11"))
 
 (defun parse-input (lines)
-  )
+  (loop for line in lines
+        and card-idx from 1
+        with winning
+        with mine
+        with num-sep
+        with num-start
+        do (setf num-start (+ 2 (position #\: line :test #'equal))
+                 num-sep (position #\| line :test #'equal))
+           (setf winning (ppcre:all-matches-as-strings "\\d+" line :start num-start :end num-sep)
+                 mine (ppcre:all-matches-as-strings "\\d+" line :start (+ 2 num-sep)))
+        collect (list card-idx
+                      (mapcar #'parse-integer winning)
+                      (mapcar #'parse-integer mine))))
 
 (defun p1 ()
   ) 
