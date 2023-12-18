@@ -40,8 +40,20 @@
                           (2expt (length x)))
                         matches-by-card)))) 
 
-(defun p2 ()
-  )
+(defun make-copy-lookup (cards)
+  (mapcar (lambda (c))
+          (destructuring-bind (card-no wins) c
+            ())))
+
+(defun p2 (data)
+  (let ((matches-by-card (loop for card in data
+                               collect (list (first data)
+                                             (length (intersection (second data)
+                                                                   (third data))))))
+        copy-queue
+        number-of-cards)
+    (setf number-of-cards (length matches-by-card))
+    ()))
 
 (defun main ()
   (let* ((infile-name (format nil +input-name-template+ +day-number+))
