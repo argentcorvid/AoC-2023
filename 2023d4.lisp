@@ -40,20 +40,27 @@
                           (2expt (length x)))
                         matches-by-card)))) 
 
+(defun make-list-of-numbers (start to-do)
+  (loop for i from 1 to to-do
+       collect (+ start i)))
+
 (defun make-copy-lookup (cards)
-  (mapcar (lambda (c))
-          (destructuring-bind (card-no wins) c
-            ())))
+  (mapcar (lambda (c)
+            (destructuring-bind (card-no wins) c
+              (list card-no
+                    (make-list-of-numbers card-no wins)))) cards ))
 
 (defun p2 (data)
   (let ((matches-by-card (loop for card in data
                                collect (list (first data)
                                              (length (intersection (second data)
                                                                    (third data))))))
-        copy-queue
-        number-of-cards)
-    (setf number-of-cards (length matches-by-card))
-    ()))
+        (card-counts (loop repeat (length data) collect 1)))
+    (dolist (card matches-by-card card-counts)
+      (loop (second card) times
+            for idx from 0
+            do (incf (nth (+ (first card) idx) card-counts) ;; "card numbers" start at 1, lists start at 0
+                     (second (nth idx card-counts))))))) ;;might not be rigt mabye need (first card) -1 instead of idx
 
 (defun main ()
   (let* ((infile-name (format nil +input-name-template+ +day-number+))
