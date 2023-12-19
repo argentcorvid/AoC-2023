@@ -7,11 +7,14 @@
 
 (defconstant +test-input+
   '("Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53"
-"Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19"
-"Card 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1"
-"Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83"
-"Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36"
-"Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11"))
+    "Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19"
+    "Card 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1"
+    "Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83"
+    "Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36"
+    "Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11"))
+
+(defconstant +test-result-p1+ 13)
+(defconstant +test-result-p2+ 30)
 
 (defun parse-input (lines)
   (loop for line in lines
@@ -28,47 +31,56 @@
                       (mapcar #'parse-integer winning)
                       (mapcar #'parse-integer mine))))
 
-(defun 2expt (number)
-  (if (>= number 1)
-      (expt 2 (- number 1))
-      0))
+(defun count-winners (cards)
+  (loop for card in cards
+        and idx from 0
+        collect (list idx (length (intersection (second card) (third card))))))
 
-(defun p1 (data)
-  (let ((matches-by-card (loop for card in data
-                                collect (intersection (second card) (third card)))))
-    (reduce #'+ (mapcar (lambda (x)
-                          (2expt (length x)))
-                        matches-by-card)))) 
+(defun p1 (winner-counts)
+  (reduce #'+ (mapcar (lambda (x)
+                        (if (>= 1 x)
+                            (expt 2 (- x 1))
+                            0))
+                      (mapcar #'second winner-counts))))
 
-(defun make-list-of-numbers (start to-do)
-  (loop for i from 1 to to-do
-       collect (+ start i)))
+(defun p2 (winner-counts)
+  (let ((card-counts (loop repeat (length winner-counts) collect 1))
+    (dolist (current-card winner-counts card-counts)
+      (loop (second current-card) times
+            for idx from 1
+            do (incf (nth (+ (first current-card) idx) card-counts) 
+                     (second (nth (first current-card) card-counts))))))))
 
-(defun make-copy-lookup (cards)
-  (mapcar (lambda (c)
-            (destructuring-bind (card-no wins) c
-              (list card-no
-                    (make-list-of-numbers card-no wins)))) cards ))
-
-(defun p2 (data)
-  (let ((matches-by-card (loop for card in data
-                               collect (list (first data)
-                                             (length (intersection (second data)
-                                                                   (third data))))))
-        (card-counts (loop repeat (length data) collect 1)))
-    (dolist (card matches-by-card card-counts)
-      (loop (second card) times
-            for idx from 0
-            do (incf (nth (+ (first card) idx) card-counts) ;; "card numbers" start at 1, lists start at 0
-                     (second (nth idx card-counts))))))) ;;might not be rigt mabye need (first card) -1 instead of idx
+(defun test (&optional (parts 0))
+  (let* ((data (parse-input +test-input+))
+         (num-winners (count-winners data)))
+    (if (and (or (= parts 0) ;;these aren't right
+                 (= parts 1))
+             (= +test-result-p1+ (p1 num-winners)))
+        ((fresh-line)
+         (princ "p1 test successful!"))
+        ((fresh-line)
+         (princ "p1 test fail!")
+         (return nil)))
+    (if (and (or (= parts 0)
+                 (= parts 2))
+             (= +test-result-p2+ (p2 num-winners)))
+        ((fresh-line)
+         (princ "p2 test successful!"))
+        ((fresh-line)
+         (princ "p2 test fail!")
+         (return nil)))
+    t))
 
 (defun main ()
   (let* ((infile-name (format nil +input-name-template+ +day-number+))
          (input-lines (uiop:read-file-lines infile-name))
-         (data (parse-input input-lines)))
+         (data (parse-input input-lines))
+         (num-of-winners (count-winners data)))
+    
     (fresh-line)
     (princ "part 1: ")
-    (princ (p1 data))))
+    (princ (p1 num-of-winners))))
     ;; (fresh-line)
     ;; (princ "part 2: ")
     ;; (fresh-line)
