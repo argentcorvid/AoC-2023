@@ -38,7 +38,7 @@
 
 (defun p1 (winner-counts)
   (reduce #'+ (mapcar (lambda (x)
-                        (if (>= 1 x)
+                        (if (<= 1 x)
                             (expt 2 (- x 1))
                             0))
                       (mapcar #'second winner-counts))))
