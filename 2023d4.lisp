@@ -44,12 +44,12 @@
                       (mapcar #'second winner-counts))))
 
 (defun p2 (winner-counts)
-  (let ((card-counts (loop repeat (length winner-counts) collect 1))
+  (let ((card-counts (loop repeat (length winner-counts) collect 1)))
     (dolist (current-card winner-counts card-counts)
-      (loop (second current-card) times
+      (loop repeat (second current-card)
             for idx from 1
             do (incf (nth (+ (first current-card) idx) card-counts) 
-                     (second (nth (first current-card) card-counts))))))))
+                     (second (nth (first current-card) card-counts)))))))
 
 (defun test (&optional (parts 0))
   (let* ((data (parse-input +test-input+))
