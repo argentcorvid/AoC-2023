@@ -2,7 +2,7 @@
 (ql:quickload '("uiop" "cl-ppcre"))
 
 (defconstant +day-number+ 4)
-(defconstant +working-dir+ (uiop:truenamize "~/Onedrive - Emerson/Documents/AoC/aoc2023"))
+(defconstant +working-dir+ (uiop:truenamize "~/Documents/AoC/aoc2023"))
 (defconstant +input-name-template+ "2023d~dinput.txt")
 
 (defconstant +test-input+
