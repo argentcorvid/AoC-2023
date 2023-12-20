@@ -18,7 +18,7 @@ velocity = chargetime
 -> distance = chargetime * (allowedtime - chargetime)
 -> distance = ct * at - ct^2
 Find ct where d > record distance
-"
+0 > ct * at - ct^2 - d "
   ) 
 
 (defun p2 ()
