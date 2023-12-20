@@ -12,6 +12,13 @@
     :D (334   1135   1350   2430)))
 
 (defun p1 ()
+  "distance = velocity * traveltime
+ traveltime = allowedtime - chargetime
+velocity = chargetime
+-> distance = chargetime * (allowedtime - chargetime)
+-> distance = ct * at - ct^2
+Find ct where d > record distance
+"
   ) 
 
 (defun p2 ()
