@@ -2,15 +2,14 @@
 (ql:quickload '("uiop" "str"))
 
 (defconstant +day-number+ 6)
-(defconstant +working-dir+ (uiop:truenamize "~/aoc_2023/"))
-(defconstant +input-name-template+ "2023d~dinput.txt")
 
 (defconstant +test-input+
-  '("Time:      7  15   30"
-    "Distance:  9  40  200"))
+  '(:T (7 15 30)
+    :D (9 40 200)))
 
-(defun parse-input (lines)
-  )
+(defconstant +full-input+
+  '(:T (56     71     79     99)
+    :D (334   1135   1350   2430)))
 
 (defun p1 ()
   ) 
@@ -19,9 +18,7 @@
   )
 
 (defun main ()
-  (let* ((infile-name (format nil +input-name-template+ +day-number+))
-         (input-lines (uiop:read-file-lines infile-name))
-         (data (parse-input input-lines)))
+  (let* ((data +full-input))
     (fresh-line)
     (princ "part 1: ")
     (princ (reduce #'+ (p1 data)))
