@@ -2,7 +2,7 @@
 (ql:quickload '("uiop" "str"))
 
 (defconstant +day-number+ 7)
-(defconstant +working-dir+ (uiop:truenamize "~/aoc_2023/"))
+(defconstant +working-dir+ (uiop:truenamize "~/OneDrive - Emerson/Documents/AoC/aoc2023"))
 (defconstant +input-name-template+ "2023d~dinput.txt")
 
 (defconstant +test-input+
@@ -18,7 +18,7 @@
 (defparameter *card-rank*
   '(#\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\T #\J #\Q #\K #\A))
 
-(defparameter *hand-type-stats*)
+;;(defparameter *hand-type-stats*)
 
 (defun classify-hand (hand)
   (let* ((counts (remove 0 (mapcar (lambda (r)
@@ -63,8 +63,9 @@
                    return nil))
           (t nil))))
 
-(defun parse-input (lines)
-  )
+(defun parse-input (line)
+  (let ((split-line (str:split #\Space line)))
+    (list (first split-line) (parse-integer (second split-line)))))
 
 (defun p1 (input)
   (let ((sorted-hands (sort (copy-list input) #'hand-comp :key #'first)))
@@ -73,16 +74,17 @@
           sum (* (second h) r)))) 
 
 (defun p2 ()
+  (push #\J (delete #\J *card-rank*)) ;; put J in the lowest position
   )
 
 (defun main ()
+  (uiop:chdir +working-dir+)
   (let* ((infile-name (format nil +input-name-template+ +day-number+))
          (input-lines (uiop:read-file-lines infile-name))
-         (data (parse-input input-lines)))
+         (data (mapcar #'parse-input input-lines)))
     (fresh-line)
     (princ "part 1: ")
-    (princ (reduce #'+ (p1 data)))
-    (fresh-line)
-    (princ "part 2: ")
-    (fresh-line)
-    (princ (reduce #'+ (p2 data)))))
+    (princ (p1 data))))
+    ;; (fresh-line)
+    ;; (princ "part 2: ")
+    ;; (princ (reduce #'+ (p2 data)))))
