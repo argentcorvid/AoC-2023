@@ -52,9 +52,7 @@
 
 (defun hand-comp (hand1 hand2)
   (let ((h1-type (classify-hand hand1))
-        (h2-type (classify-hand hand2))
-        h1-score
-        h2-score)
+        (h2-type (classify-hand hand2)))
     (cond ((< h1-type h2-type) t)
           ((= h1-type h2-type)
            (loop for h1c in (map 'list #'card-score hand1)
@@ -68,8 +66,11 @@
 (defun parse-input (lines)
   )
 
-(defun p1 ()
-  ) 
+(defun p1 (input)
+  (let ((sorted-hands (sort (copy-list input) #'hand-comp :key #'first)))
+    (loop for h in sorted-hands
+          for r from 1
+          sum (* (second h) r)))) 
 
 (defun p2 ()
   )
