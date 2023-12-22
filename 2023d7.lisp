@@ -57,12 +57,12 @@
         h2-score)
     (cond ((< h1-type h2-type) t)
           ((= h1-type h2-type)
-           (loop for h1c in (map 'list #card-score hand1)
-                 for h2c in (map 'list #card-score hand2)
+           (loop for h1c in (map 'list #'card-score hand1)
+                 for h2c in (map 'list #'card-score hand2)
                  if (< h1c h2c)
                    return t
                  else if (= h1c h2c)
-                        next-iteration
+                       do (next-iteration)
                  else
                    return nil))
           (t nil))))
