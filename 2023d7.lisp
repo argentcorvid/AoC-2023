@@ -2,7 +2,7 @@
 (ql:quickload '("uiop" "str"))
 
 (defconstant +day-number+ 7)
-(defconstant +working-dir+ (uiop:truenamize "~/OneDrive - Emerson/Documents/AoC/aoc2023"))
+(defconstant +working-dir+ (uiop:truenamize "~/aoc_2023"))
 (defconstant +input-name-template+ "2023d~dinput.txt")
 
 (defconstant +test-input+
@@ -47,8 +47,47 @@
                 (= 1 3counts))
            #x50))))
 
+(defun classify-hand-p2 (hand)
+  (let* ((counts (remove 0
+                         (mapcar (lambda (r)
+                                   (count r hand))
+                                 *card-rank*)))
+         (jcounts (count #\J hand))
+         (2counts (count 2 counts))
+         (3counts (count 3 counts))
+         (bestcount (apply #'max counts))
+         (j-and-b (+ jcounts bestcount)))
+   ;; (break)
+    (cond ((and (= 0 jcounts)
+                (= 1 bestcount))
+           #x10) ;; high card, any joker would make a pair
+          ((and (> 2 jcounts)
+                (= 2 j-and-b)
+                (= 0 3counts))
+           #x20) ;;one pair, natural or hc with 1 joker
+          ((and (= 2 2counts)
+                (= 0 jcounts))
+           #x30) ;;two pair, any j would make make a better hand
+          
+          ((or (and (= 1 jcounts 2counts)
+                    (= 0 3counts))
+               (and (= 1 3counts)
+                    (= 0 jcounts))
+               (and (= 1 bestcount)
+                    (= 2 jcounts)))
+           #x40) ;; 3k and not full house
+          ((and (= 3 j-and-b)
+                (<= 1 2counts))
+           #x50) ;; fh
+          ((= 4 j-and-b)
+           #x60) ;; 4k
+          ((> 4 j-and-b)
+           #x70) ;; 5k!
+          )))
+
 (defun card-score (card)
-  (position card *card-rank*))
+  
+  (or (position card *card-rank*) 0))
 
 (defun hand-comp (hand1 hand2)
   (let ((h1-type (classify-hand hand1))
@@ -63,6 +102,19 @@
                    return nil))
           (t nil))))
 
+(defun hand-comp-2 (hand1 hand2)
+  (let* ((h1-type (classify-hand-p2 hand1))
+         (h2-type (classify-hand-p2 hand2)))
+    (cond ((< h1-type h2-type) t)
+          ((= h1-type h2-type)
+           (loop for h1c in (map 'list #'card-score hand1)
+                 for h2c in (map 'list #'card-score hand2)
+                 if (< h1c h2c)
+                   return t
+                 else if (> h1c h2c)
+                        return nil))
+          (t nil))))
+
 (defun parse-input (line)
   (let ((split-line (str:split #\Space line)))
     (list (first split-line) (parse-integer (second split-line)))))
@@ -73,9 +125,12 @@
           for r from 1
           sum (* (second h) r)))) 
 
-(defun p2 ()
-  (push #\J (delete #\J *card-rank*)) ;; put J in the lowest position
-  )
+(defun p2 (input)
+  (delete #\J *card-rank*) ;; consider J seperately
+  (let ((sorted-hands (sort (copy-list input) #'hand-comp-2 :key #'first)))
+    (loop for h in sorted-hands
+          for r from 1
+          sum (* (second h) r))))
 
 (defun main ()
   (uiop:chdir +working-dir+)
@@ -84,7 +139,7 @@
          (data (mapcar #'parse-input input-lines)))
     (fresh-line)
     (princ "part 1: ")
-    (princ (p1 data))))
-    ;; (fresh-line)
-    ;; (princ "part 2: ")
-    ;; (princ (reduce #'+ (p2 data)))))
+    (princ (p1 data))
+    (fresh-line)
+    (princ "part 2: ")
+    (princ (p2 data))))
