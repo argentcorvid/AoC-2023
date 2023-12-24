@@ -18,6 +18,12 @@
 (defparameter *card-rank*
   '(#\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\T #\J #\Q #\K #\A))
 
+(defun reset ()
+  (unless (find #\J *card-rank*)
+    (let ((tail (member #\Q *card-rank*))
+          (head (butlast *card-rank* 3)))
+      (setf *card-rank* (append head '(#\J) tail)))))
+
 ;;(defparameter *hand-type-stats*)
 
 (defun classify-hand (hand)
@@ -30,7 +36,7 @@
                     (= 1 c)) counts)
            #x10)
           ((and (= 1 2counts)
-                (/= 1 3counts))
+                1                (/= 1 3counts))
            #x20)
           ((= 2 2counts)
            #x30)
@@ -48,14 +54,16 @@
            #x50))))
 
 (defun classify-hand-p2 (hand)
-  (let* ((counts (remove 0
-                         (mapcar (lambda (r)
-                                   (count r hand))
-                                 *card-rank*)))
+  (let* ((counts (or (remove 0
+                             (mapcar (lambda (r)
+                                       (count r hand))
+                                     *card-rank*))
+                     '(0)))
          (jcounts (count #\J hand))
          (2counts (count 2 counts))
          (3counts (count 3 counts))
-         (bestcount (apply #'max counts))
+         (bestcount (or (apply #'max counts)
+                        0))
          (j-and-b (+ jcounts bestcount)))
    ;; (break)
     (cond ((and (= 0 jcounts)
@@ -81,7 +89,7 @@
            #x50) ;; fh
           ((= 4 j-and-b)
            #x60) ;; 4k
-          ((> 4 j-and-b)
+          ((< 4 j-and-b)
            #x70) ;; 5k!
           )))
 
@@ -103,12 +111,12 @@
           (t nil))))
 
 (defun hand-comp-2 (hand1 hand2)
-  (let* ((h1-type (classify-hand-p2 hand1))
-         (h2-type (classify-hand-p2 hand2)))
+  (let* ((h1-type (third hand1))
+         (h2-type (third hand2)))
     (cond ((< h1-type h2-type) t)
           ((= h1-type h2-type)
-           (loop for h1c in (map 'list #'card-score hand1)
-                 for h2c in (map 'list #'card-score hand2)
+           (loop for h1c in (map 'list #'card-score (first hand1))
+                 for h2c in (map 'list #'card-score (first hand2))
                  if (< h1c h2c)
                    return t
                  else if (> h1c h2c)
@@ -127,12 +135,15 @@
 
 (defun p2 (input)
   (delete #\J *card-rank*) ;; consider J seperately
-  (let ((sorted-hands (sort (copy-list input) #'hand-comp-2 :key #'first)))
+  (let* ((classed-hands (mapcar (lambda (h)
+                                  (append h (list (classify-hand-p2 (first h))))) input))
+         (sorted-hands (sort classed-hands #'hand-comp-2)))
     (loop for h in sorted-hands
           for r from 1
           sum (* (second h) r))))
 
 (defun main ()
+  (reset)
   (uiop:chdir +working-dir+)
   (let* ((infile-name (format nil +input-name-template+ +day-number+))
          (input-lines (uiop:read-file-lines infile-name))
