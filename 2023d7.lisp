@@ -2,8 +2,7 @@
 (ql:quickload 'uiop)
 
 (defconstant +day-number+ 7)
-;;(defconstant +working-dir+ (uiop:truenamize "~/aoc_2023"))
-()
+(defconstant +working-dir+ (uiop:truenamize "~/aoc_2023"))
 (defconstant +input-name-template+ "2023d~dinput.txt")
 
 (defconstant +test-input+
