@@ -63,8 +63,10 @@
            #x70) ;; 5k!
           ((= 4 j-and-b)
            #x60) ;; 4k
-          ((and (= 3 j-and-b)
-                (<= 1 2counts))
+          ((or (and (= 2 2counts)
+                    (= 1 jcounts))
+               (and (= 1 2counts)
+                    (= 1 3counts)))
            #x50) ;; fh       
           ((or (and (= 1 jcounts 2counts)
                     (= 0 3counts))
