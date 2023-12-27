@@ -95,7 +95,7 @@
 
 (defun card-score (card)
   
-  (or (position card *card-rank*) 0))
+  (or (position card *card-rank*) -1))
 
 (defun hand-comp (hand1 hand2)
   (let ((h1-type (classify-hand hand1))
@@ -138,6 +138,7 @@
   (let* ((classed-hands (mapcar (lambda (h)
                                   (append h (list (classify-hand-p2 (first h))))) input))
          (sorted-hands (sort classed-hands #'hand-comp-2)))
+    (break)
     (loop for h in sorted-hands
           for r from 1
           sum (* (second h) r))))
