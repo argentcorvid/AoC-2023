@@ -46,17 +46,18 @@ ZZZ = (ZZZ, ZZZ)")
     (list directions mappings)))
 
 (defun p1 (actions)
-  (loop initially loc = "AAA"
+  (loop with loc = "AAA"
         for dir in (first actions)
         with maps = (second actions)
-        with path
         until (equal loc "ZZZ")
+        for lookup = (gethash maps loc)
         when (equal dir #\L)
-          collect (first (gethash maps loc)) into path
+          collect (first lookup) into path
         else
-          collect (second (gethash maps loc)) into path
+          collect (second lookup) into path
+        count lookup into len
         do (setf loc (first path))
-        finally (return (values (length path) path)))) 
+        finally (return (values len path)))) 
 
 (defun p2 ()
   )
