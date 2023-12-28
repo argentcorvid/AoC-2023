@@ -45,8 +45,18 @@ ZZZ = (ZZZ, ZZZ)")
     (setf (cdr (last directions)) directions) ; ;make infinite circular list
     (list directions mappings)))
 
-(defun p1 ()
-  ) 
+(defun p1 (actions)
+  (loop initially loc = "AAA"
+        for dir in (first actions)
+        with maps = (second actions)
+        with path
+        until (equal loc "ZZZ")
+        when (equal dir #\L)
+          collect (first (gethash maps loc)) into path
+        else
+          collect (second (gethash maps loc)) into path
+        do (setf loc (first path))
+        finally (return (values (length path) path)))) 
 
 (defun p2 ()
   )
