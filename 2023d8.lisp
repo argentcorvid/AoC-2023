@@ -25,21 +25,21 @@ AAA = (BBB, BBB)
 BBB = (AAA, ZZZ)
 ZZZ = (ZZZ, ZZZ)")
 
-(defstruct tree-node (node-name :type string)
-           (step-left :type tree-node)
-           (step-right :type tree-node))
+;; (defstruct tree-node (node-name :type string)
+;;            (step-left :type tree-node)
+;;            (step-right :type tree-node))
 
 (defun parse-input (lines)
   (let* ((input-copy (copy-list lines))
-         (directions (map 'list #'identity
-                          (pop input-copy)))
-         (mappings (make-hash-table :test #'equal)) ;; or do i want a hash here? struct?
+         (directions (coerce (pop input-copy)
+                          'list))
+         (mappings (make-hash-table :test #'equal)) ;; tree? or do i want a hash here? struct?
          keys
          targets)
     (pop input-copy) ;; empty
     (dolist (l input-copy)
       (push (subseq l 0 3) keys) ;; subseq 0-index, end is not included
-      (push (list (subseq l 7 10) (subseq l 12 16))
+      (push (list (subseq l 7 10) (subseq l 12 15))
             targets))
     (serapeum:pairhash keys targets mappings) ;; zip-to-hash
     (setf (cdr (last directions)) directions) ; ;make infinite circular list
@@ -47,20 +47,32 @@ ZZZ = (ZZZ, ZZZ)")
 
 (defun p1 (actions)
   (loop with loc = "AAA"
-        for dir in (first actions)
         with maps = (second actions)
+        for dir in (first actions)
         until (equal loc "ZZZ")
-        for lookup = (gethash maps loc)
+        for lookup = (gethash loc maps)
         when (equal dir #\L)
           collect (first lookup) into path
+          and do (setf loc (first lookup))
         else
           collect (second lookup) into path
+          and do (setf loc (second lookup))
+        end
         count lookup into len
-        do (setf loc (first path))
         finally (return (values len path)))) 
 
 (defun p2 ()
-  )
+  ( ))
+
+(defun p1-test ()
+  (let ((in-lines (uiop:split-string +test-input-1+ :separator '(#\newline))))
+    (fresh-line)
+    (princ "1st test path length: ")
+    (princ (p1 (parse-input in-lines)))
+    (setf in-lines (uiop:split-string +test-input-2+ :separator '(#\newline)))
+    (fresh-line)
+    (princ "2nd path length: ")
+    (princ (p1 (parse-input in-lines)))))
 
 (defun main ()
   (let* ((infile-name (format nil +input-name-template+ +day-number+))
@@ -68,8 +80,9 @@ ZZZ = (ZZZ, ZZZ)")
          (data (parse-input input-lines)))
     (fresh-line)
     (princ "part 1: ")
-    (princ (reduce #'+ (p1 data)))
-    (fresh-line)
-    (princ "part 2: ")
-    (fresh-line)
-    (princ (reduce #'+ (p2 data)))))
+    (princ (p1 data))
+    ;; (fresh-line)
+    ;; (princ "part 2: ")
+    ;; (fresh-line)
+    ;; (princ (reduce #'+ (p2 data)))
+    ))
