@@ -1,5 +1,5 @@
 ;;;day8
-(ql:quickload '(uiop serapeum))
+(ql:quickload '(uiop))
 
 (setf *print-circle* t)
 
@@ -34,14 +34,11 @@ ZZZ = (ZZZ, ZZZ)")
          (directions (coerce (pop input-copy)
                           'list))
          (mappings (make-hash-table :test #'equal)) ;; tree? or do i want a hash here? struct?
-         keys
-         targets)
+         )
     (pop input-copy) ;; empty
     (dolist (l input-copy)
-      (push (subseq l 0 3) keys) ;; subseq 0-index, end is not included
-      (push (list (subseq l 7 10) (subseq l 12 15))
-            targets))
-    (serapeum:pairhash keys targets mappings) ;; zip-to-hash
+      (setf (gethash (subseq l 0 3) mappings)
+            (list (subseq l 7 10) (subseq l 12 15))))
     (setf (cdr (last directions)) directions) ; ;make infinite circular list
     (list directions mappings)))
 
