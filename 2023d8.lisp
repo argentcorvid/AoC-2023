@@ -90,34 +90,24 @@ XXX = (XXX, XXX)")
         do (print locs)
         count lookups))
 
-(defun lcm-p2 (actions))
- (loop named b
-          with locs = (loop named a for k being the hash-key of (second actions)
-                            when (equal #\A (char k 2))
-                              collect k)
-          with maps = (second actions)
-          with steps-to-z = (make-list (length locs) 0)
-          for dir in (first actions)
-          for lookups = (mapcar (lambda (loc)
-                                  (gethash loc maps))
-                                locs)
-          until (every (lambda (x)
-                         (/= 0 x))
-                       steps-to-z)
-          when (equal dir #\L)
-            do (setf locs (mapcar #'first lookups))
-          else
-            do (setf locs (mapcar #'second lookups))
-          end
-          count lookups into steps
-          do (loop named c
-                   for l in locs
-                   for idx from 0
-                   when (and (= 0 (nth idx steps-to-z))
-                             (equal #\Z (char l 2)))
-                     do (incf (nth idx steps-to-z)
-                           steps))
-          finally (return (apply #'lcm steps-to-z))))
+(defun lcm-p2 (actions)
+  (let* ((maps (second actions))
+        (locs (loop for k being the hash-key of (second actions) when (equal #\A (char k 2)) collect k))
+        (loc-idx 0)
+        (steps-to-z (make-list (length locs) :initial-element 0)) )
+    (dolist (start-loc locs (apply #'lcm steps-to-z))
+        (loop for dir in (first actions)
+            with step-loc = start-loc
+            until (equal #\Z (char step-loc 2))
+            when (equal #\L dir)
+                do (setf step-loc (first (gethash step-loc maps)))
+            else
+              do (setf step-loc (second (gethash step-loc maps)))
+            count step-loc into steps
+              finally (setf (elt steps-to-z loc-idx) steps))
+      (incf loc-idx)
+      )))
+
 
 (defun p1-test ()
   (let ((in-lines (uiop:split-string +test-input-1+ :separator '(#\newline))))
@@ -149,5 +139,5 @@ XXX = (XXX, XXX)")
     (princ (loop for k being the hash-key of (second data)
                  when (equal #\A (char k 2))
                  collect k))
-    (princ (p2 data))
+    (princ (lcm-p2 data))
     ))
