@@ -24,8 +24,22 @@
                             (mapcar #'lastc m))
                           (mapcar #'differences data-list)))))
 
-(defun p2 ()
-  )
+(defun firsts-of (l)
+  (mapcar #'first l))
+
+(defun reduce-subt (l)
+  (reduce #'- l))
+
+(defun p2 (data-list)
+  (let ((first-columns
+          (mapcar #'reverse (mapcar #'firsts-of
+                    (mapcar #'differences data-list)))))
+    (labels ((rec (lst &optional (acc 0))
+             (if (null lst)
+                 acc
+                 (progn (setf acc (+ (- acc) (pop lst)))
+                        (rec lst acc)))))
+      (reduce #'+ (mapcar #'rec first-columns)))))
 
 
 (defun succ-pairs (fn lst)
@@ -37,12 +51,10 @@
 
 (defun differences (numbers)
   (labels ((rec (lst acc)
-             
+             (push lst acc)
              (if (every #'zerop lst)
                  (nreverse acc)
-                 (progn
-                   (push lst acc)
-                   (rec (reverse (succ-pairs #'- (reverse lst))) acc)))))
+                 (rec (reverse (succ-pairs #'- (reverse lst))) acc))))
     (rec numbers nil)))
 
 (defun lastc (l)
@@ -55,7 +67,7 @@
     (fresh-line)
     (princ "part 1: ")
     (princ (p1 data))
-    ;; (fresh-line)
-    ;; (princ "part 2: ")
-    ;; (princ (reduce #'+ (p2 data)))
+    (fresh-line)
+    (princ "part 2: ")
+    (princ (p2 data))
     ))
