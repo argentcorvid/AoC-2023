@@ -11,14 +11,18 @@
     (10 13 16 21 30 45)))
 
 (defun parse-input (lines)
-  )
+  (labels ((line-as-numbers (l)
+             (mapcar #'parse-integer
+                     (uiop:split-string l :separator '(#\space)))))
+    (mapcar #'line-as-numbers lines)))
 
 (defun p1 (data-list)
   (reduce #'+
-          (mapcar (lambda (l) (reduce #'+ l))
-                  (mapcar (lambda (l)
-                            (mapcar #'lastc l))
-                          (mapcar #'differences data-list))))) 
+          (mapcar (lambda (l)
+                    (reduce #'+ l))
+                  (mapcar (lambda (m)
+                            (mapcar #'lastc m))
+                          (mapcar #'differences data-list)))))
 
 (defun p2 ()
   )
@@ -50,8 +54,8 @@
          (data (parse-input input-lines)))
     (fresh-line)
     (princ "part 1: ")
-    (princ (reduce #'+ (p1 data)))
-    (fresh-line)
-    (princ "part 2: ")
-    (fresh-line)
-    (princ (reduce #'+ (p2 data)))))
+    (princ (p1 data))
+    ;; (fresh-line)
+    ;; (princ "part 2: ")
+    ;; (princ (reduce #'+ (p2 data)))
+    ))
