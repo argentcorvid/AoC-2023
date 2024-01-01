@@ -1,7 +1,7 @@
-;;;day4
-(ql:quickload '("uiop" "cl-ppcre"))
+;;;dayx
+(ql:quickload :uiop)
 
-(defconstant +day-number+ 4)
+(defconstant +day-number+ x)
 (defconstant +working-dir+ (uiop:truenamize "~/aoc_2023/"))
 (defconstant +input-name-template+ "2023d~dinput.txt")
 
@@ -23,8 +23,7 @@
          (data (parse-input input-lines)))
     (fresh-line)
     (princ "part 1: ")
-    (princ (reduce #'+ (p1 data)))
+    (princ (p1 data))
     (fresh-line)
     (princ "part 2: ")
-    (fresh-line)
-    (princ (reduce #'+ (p2 data)))))
+    (princ (p2 data))))
