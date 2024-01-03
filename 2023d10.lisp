@@ -12,6 +12,13 @@
     "-L-J|"
     "L|-JF"))
 
+(defconstant +test-input-2+
+  '("7-F7-"
+    ".FJ|7"
+    "SJLL7"
+    "|F--J"
+    "LJ.LJ"))
+
 (defconstant +pipes+
   (pairlis '(#\| #\- #\J #\F #\7 #\L #\. #\S)
            '((:n :s)
@@ -57,9 +64,9 @@
 
 (defun p1 (grid)
   (do ((steps 0 (1+ steps))
-       (visited nil (adjoin loc visited :test #'equal))
+       (visited (list start-pt) (adjoin loc visited :test #'equal))
        (loc start-pt))
-      ((and (equal loc start-pt)
+      ((and (null loc)
             (< 0 steps))
        (floor steps 2))
     (setf loc (loop named inner
