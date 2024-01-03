@@ -57,10 +57,10 @@
 
 (defun p1 (grid)
   (do ((steps 0 (1+ steps))
-       (visited nil (adjoin loc visited))
+       (visited nil (adjoin loc visited :test #'equal))
        (loc start-pt))
       ((and (equal loc start-pt)
-            (> 0 steps))
+            (< 0 steps))
        (floor steps 2))
     (setf loc (loop named inner
                     for d in (gp-to-pipe loc grid)
@@ -70,8 +70,8 @@
                     when (and (every (lambda (x)
                                        (<= 0 x))
                                      lp)
-                              (intersection (list mate) (gp-to-pipe lp grid))
-                              (null (intersection (list lp) visited)))
+                              (intersection (list mate) (gp-to-pipe lp grid) :test #'equal)
+                              (null (intersection (list lp) visited :test #'equal)))
                     do (return-from inner lp))))) 
 
 (defun p2 ()
