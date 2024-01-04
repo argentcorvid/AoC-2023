@@ -68,8 +68,8 @@
        (loc start-pt))
       ((and (null loc)
             (< 0 steps))
-       ((values (floor steps 2)
-                (remove nil visited))))
+       (values (floor steps 2)
+                 (remove nil visited)))
     (setf loc (loop named inner
                     for d in (gp-to-pipe loc grid)
                     for mate = (mate-lookup d)
@@ -87,15 +87,15 @@
 ;;; Area = # int pts + (# boundary pts / 2) - 1
 ;;; (bdry pts/2) = part 1 answer
 ;;; int pts = 1/2 sum (i=1 to n) (yi(x(i-1)-x(i+1))) - (p1 ans) + 1
-(defun p2 (path, p1ans)
+(defun p2 (path p1ans)
     (let ((bpoints (append path (list (first path)))))
       (1+
        (- (floor
-           (loop for i from 1 to (length bpoints)
+           (loop for i from 1 to (length path)
                  for y = (first (nth i bpoints))
                  for x+ = (second (nth (1+ i) bpoints))
                  for x- = (second (nth (1- i) bpoints))
-                 summing (* y (- (x- x+))))
+                 summing (* y (- x- x+)))
            2)
           p1ans))))
 
@@ -104,10 +104,12 @@
   (let* ((infile-name (format nil +input-name-template+ +day-number+))
          (input-lines (uiop:read-file-lines infile-name))
          (data (parse-input input-lines)))
-    (fresh-line)
-    (princ "part 1: ")
-    (princ (p1 data))
-    ;; (fresh-line)
-    ;; (princ "part 2: ")
-    ;; (princ (p2 data))
-    ))
+    (multiple-value-bind (p1ans path)
+        (p1 data)
+      (fresh-line)
+      (princ "part 1: ")
+      (princ p1ans)
+      (fresh-line)
+      (princ "part 2: ")
+      (princ (p2 path p1ans))))
+  )
