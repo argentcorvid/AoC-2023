@@ -19,6 +19,41 @@
     "|F--J"
     "LJ.LJ"))
 
+(defconstant +test-input-p2-1+
+  '("..........."
+    ".S-------7."
+    ".|F-----7|."
+    ".||.....||."
+    ".||.....||."
+    ".|L-7.F-J|."
+    ".|..|.|..|."
+    ".L--J.L--J."
+    "...........")) ;; 4 inside
+
+(defconstant +test-input-p2-2+
+  '(".F----7F7F7F7F-7...."
+    ".|F--7||||||||FJ...."
+    ".||.FJ||||||||L7...."
+    "FJL7L7LJLJ||LJ.L-7.."
+    "L--J.L7...LJS7F-7L7."
+    "....F-J..F7FJ|L7L7L7"
+    "....L7.F7||L7|.L7L7|"
+    ".....|FJLJ|FJ|F7|.LJ"
+    "....FJL-7.||.||||..."
+    "....L---J.LJ.LJLJ...")) ;; 8 inside
+
+(defconstant +test-input-p2-3+
+  '("FF7FSF7F7F7F7F7F---7"
+    "L|LJ||||||||||||F--J"
+    "FL-7LJLJ||||||LJL-77"
+    "F--JF--7||LJLJ7F7FJ-"
+    "L---JF-JLJ.||-FJLJJ7"
+    "|F|F-JF---7F7-L7L|7|"
+    "|FFJF7L7F-JF7|JL---7"
+    "7-L-JL7||F7|L7F-7F7|"
+    "L.L7LFJ|||||FJL7||LJ"
+    "L7JLJL-JLJLJL--JLJ.L")) ;; 10 inside
+
 (defconstant +pipes+
   (pairlis '(#\| #\- #\J #\F #\7 #\L #\. #\S)
            '((:n :s)
@@ -88,16 +123,14 @@
 ;;; (bdry pts/2) = part 1 answer
 ;;; int pts = 1/2 sum (i=1 to n) (yi(x(i-1)-x(i+1))) - (p1 ans) + 1
 (defun p2 (path p1ans)
-    (let ((bpoints (append path (list (first path)))))
-      (1+
-       (- (floor
-           (loop for i from 1 below (length path)
-                 for y = (first (nth i bpoints))
-                 for x+ = (second (nth (1+ i) bpoints))
-                 for x- = (second (nth (1- i) bpoints))
-                 summing (* y (- x- x+)))
-           2)
-          p1ans))))
+  (let ((bpoints (append path (list (first path)))) ;; need to make it a loop , could be circular i guess, but that probably doesn't really help
+        shoelace)
+    (setf shoelace (loop for i from 1 below (* 2 p1ans) ;; total path length
+                         for y = (first (nth i bpoints))
+                         for x+ = (second (nth (1+ i) bpoints))
+                         for x- = (second (nth (1- i) bpoints))
+                         summing (* y (- x- x+))))
+      (1+ (- (floor shoelace 2) p1ans))))
 
 
 (defun main ()
@@ -111,5 +144,5 @@
       (princ p1ans)
       (fresh-line)
       (princ "part 2: ")
-      (princ (p2 path p1ans))))
+      (princ (step (p2 path p1ans)))))
   )
