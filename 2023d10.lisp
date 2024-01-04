@@ -91,7 +91,7 @@
     (let ((bpoints (append path (list (first path)))))
       (1+
        (- (floor
-           (loop for i from 1 to (length path)
+           (loop for i from 1 below (length path)
                  for y = (first (nth i bpoints))
                  for x+ = (second (nth (1+ i) bpoints))
                  for x- = (second (nth (1- i) bpoints))
