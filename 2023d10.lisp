@@ -125,12 +125,11 @@
 (defun p2 (path p1ans)
   (let ((bpoints (append path (list (first path)))) ;; need to make it a loop , could be circular i guess, but that probably doesn't really help
         shoelace)
-    (setf shoelace (abs (loop for i from 1 below (* 2 p1ans) ;; total path length
-                         for y = (first (nth i bpoints))
-                         for x+ = (second (nth (1+ i) bpoints))
-                         for x- = (second (nth (1- i) bpoints))
-                         summing (* y (- x- x+)))))
-    (break)
+    (setf shoelace (abs (loop for i from 0 below (* 2 p1ans) ;; total path length
+                              for (y x) = (nth i bpoints)
+                              for (y+ x+) = (nth (1+ i) bpoints)
+                              summing (* (+ y y+) (- x x+)) ;; trapezoid formula of shoelace
+                              )))
     (1+ (- (floor shoelace 2) p1ans))))
 
 
