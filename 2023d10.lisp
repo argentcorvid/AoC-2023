@@ -68,7 +68,8 @@
        (loc start-pt))
       ((and (null loc)
             (< 0 steps))
-       (floor steps 2))
+       ((values (floor steps 2)
+                (remove nil visited))))
     (setf loc (loop named inner
                     for d in (gp-to-pipe loc grid)
                     for mate = (mate-lookup d)
@@ -81,8 +82,23 @@
                               (null (intersection (list lp) visited :test #'equal)))
                     do (return-from inner lp))))) 
 
-(defun p2 ()
-  )
+;;; Pick's theorem + shoelace theorem
+;;; Area = 1/2 sum (i=1 to n) (yi(x(i-1)-x(i+1)))
+;;; Area = # int pts + (# boundary pts / 2) - 1
+;;; (bdry pts/2) = part 1 answer
+;;; int pts = 1/2 sum (i=1 to n) (yi(x(i-1)-x(i+1))) - (p1 ans) + 1
+(defun p2 (path, p1ans)
+    (let ((bpoints (append path (list (first path)))))
+      (1+
+       (- (floor
+           (loop for i from 1 to (length bpoints)
+                 for y = (first (nth i bpoints))
+                 for x+ = (second (nth (1+ i) bpoints))
+                 for x- = (second (nth (1- i) bpoints))
+                 summing (* y (- (x- x+))))
+           2)
+          p1ans))))
+
 
 (defun main ()
   (let* ((infile-name (format nil +input-name-template+ +day-number+))
