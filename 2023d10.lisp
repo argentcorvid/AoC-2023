@@ -97,6 +97,43 @@
         (setf start-pt (list lidx chidx)))
       (incf lidx))))
 
+(defun parse-input-to-hash (lines)
+  (loop named outer
+        for line in lines
+        for line-idx from 0
+        with result = (make-hash-table :test #'equal)
+        do (loop named inner
+                 for ch across line
+                 for ch-idx from 0
+                 do (setf (gethash (list line-idx ch-idx) result)
+                          (pipe-lookup ch))
+                 when (equal #\S ch)
+                 do (setf start-pt (list line-idx ch-idx)))
+        finally (return-from outer result)))
+
+(defun p1-with-hash (grid-hash)
+  (let ((visited (make-hash-table :test #'equal)))
+    (setf (gethash start-pt visited) t)
+    (do ((steps 0 (1+ steps))
+         (loc start-pt)
+         (visited visited (setf (gethash loc visited) t)))
+        ((and (null loc)
+              (< 0 steps))
+         (values (floor steps 2)
+                 visited))
+      (setf loc (loop named inner
+                      for d in (gethash loc grid-hash)
+                      for mate = (mate-lookup d)
+                      for ld = (dir-lookup d)
+                      for lp = (mapcar #'+ loc ld)
+                      when (and (every (lambda (x)
+                                         (<= 0 x))
+                                       lp)
+                                ;; and in bounds the other dir!
+                                (intersection (list mate) (gethash lp grid-hash))
+                                (null (gethash lp visited)))
+                      do (return-from inner lp))))))
+
 (defun p1 (grid)
   (do ((steps 0 (1+ steps))
        (visited (list start-pt) (adjoin loc visited :test #'equal))
@@ -104,7 +141,7 @@
       ((and (null loc)
             (< 0 steps))
        (values (floor steps 2)
-                 (remove nil visited)))
+               (remove nil visited)))
     (setf loc (loop named inner
                     for d in (gp-to-pipe loc grid)
                     for mate = (mate-lookup d)
