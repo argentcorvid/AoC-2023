@@ -1,4 +1,19 @@
 ;;;day10
+;; with full input:
+;;   seconds  |     gc     |   consed  |  calls |  sec/call  |  name  
+;;    --------------------------------------------------------
+;;      0.953 |      0.000 | 1,559,440 |      1 |   0.953000 | P1-WITH-VECTOR
+;;      0.869 |      0.000 | 2,162,688 |      1 |   0.868540 | P1
+;;      0.187 |      0.000 |   262,144 |      1 |   0.187000 | P2
+;;      0.000 |      0.000 |   327,680 |      1 |   0.000000 | PARSE-INPUT
+;;      0.000 |      0.000 | 2,709,504 |      1 |   0.000000 | PARSE-INPUT-TO-HASH
+;;      0.000 |      0.000 |    25,536 |      1 |   0.000000 | P2-VECTOR
+;;      0.000 |      0.000 |         0 | 34,362 |   0.000000 | GP-TO-PIPE
+;;    --------------------------------------------------------
+;;      2.009 |      0.000 | 7,046,992 | 34,368 |            | Total
+
+;; estimated total profiling overhead: 0.01 seconds
+
 (ql:quickload '(:uiop))
 
 (defconstant +day-number+ 10)
@@ -109,19 +124,18 @@
                           (pipe-lookup ch))
                  when (equal #\S ch)
                  do (setf start-pt (list line-idx ch-idx)))
-        finally (return-from outer result)))
+        finally (return-from parse-input-to-hash result)))
 
-(defun p1-with-hash (grid-hash)
+(defun p1-with-hash (grid-hash) ;; not a good idea, need the ordering of the path for p2!
   (let ((visited (make-hash-table :test #'equal)))
     (setf (gethash start-pt visited) t)
     (do ((steps 0 (1+ steps))
-         (loc start-pt)
-         (visited visited (setf (gethash loc visited) t)))
+         (loc start-pt))
         ((and (null loc)
               (< 0 steps))
          (values (floor steps 2)
                  visited))
-      (setf loc (loop named inner
+      (setf loc (loop named hash-inner
                       for d in (gethash loc grid-hash)
                       for mate = (mate-lookup d)
                       for ld = (dir-lookup d)
@@ -132,7 +146,31 @@
                                 ;; and in bounds the other dir!
                                 (intersection (list mate) (gethash lp grid-hash))
                                 (null (gethash lp visited)))
-                      do (return-from inner lp))))))
+                      do (return-from hash-inner lp)))
+      (setf (gethash loc visited) t))))
+
+(defun p1-with-vector (grid-hash)
+  (do ((steps 0 (1+ steps))
+       (loc start-pt)
+       (visited (make-array 1 :initial-element start-pt
+                              :adjustable t
+                              :fill-pointer t)))
+      ((and (null loc)
+            (< 0 steps))
+       (values (floor steps 2)
+               visited))
+    (setf loc (loop named vec-inner
+                    for d in (gethash loc grid-hash)
+                    for mate = (mate-lookup d)
+                    for ld = (dir-lookup d)
+                    for lp = (mapcar #'+ loc ld)
+                    when (and (every (lambda (x)
+                                       (<= 0 x))
+                                     lp)
+                              (intersection (list mate) (gethash lp grid-hash))
+                              (null (position lp visited :test #'equal)))
+                    do (return-from vec-inner lp)))
+    (vector-push-extend loc visited)))
 
 (defun p1 (grid)
   (do ((steps 0 (1+ steps))
@@ -152,7 +190,7 @@
                                      lp)
                               (intersection (list mate) (gp-to-pipe lp grid) :test #'equal)
                               (null (intersection (list lp) visited :test #'equal)))
-                    do (return-from inner lp))))) 
+                    do (return-from inner lp)))))
 
 ;;; Pick's theorem + shoelace theorem
 ;;; Area = 1/2 sum (i=1 to n) (yi(x(i-1)-x(i+1)))
@@ -169,6 +207,15 @@
                               )))
     (1+ (- (floor shoelace 2) p1ans))))
 
+(defun p2-vector (path p1ans)
+  (let (bpoints
+        shoelace)
+    (setf bpoints (substitute (aref path 0) nil path :test #'equal))
+    (setf shoelace (abs (loop for i from 0 below (* 2 p1ans)
+                              for (y x) across bpoints
+                              for (y+ x+) = (aref bpoints (1+ i))
+                              summing (* (+ y y+) (- x x+)))))
+    (1+ (- (floor shoelace 2) p1ans))))
 
 (defun main ()
   (let* ((infile-name (format nil +input-name-template+ +day-number+))
@@ -182,4 +229,29 @@
       (fresh-line)
       (princ "part 2: ")
       (princ (p2 path p1ans)))))
+
+(defun time-test ()
+  (let* ((infile-name (format nil +input-name-template+ +day-number+))
+         (input-lines (uiop:read-file-lines infile-name))
+         data)
+    (setf data (parse-input input-lines))
+    (multiple-value-bind
+          (p1ans path)
+        (p1 data)
+      (fresh-line)
+      (princ "part 1: ")
+      (princ p1ans)
+      (fresh-line)
+      (princ "part 2: ")
+      (princ (p2 path p1ans)))
+    (setf data (parse-input-to-hash input-lines))
+    (multiple-value-bind
+          (p1ans path)
+        (p1-with-vector data)
+      (fresh-line)
+      (princ "part 1: ")
+      (princ p1ans)
+      (fresh-line)
+      (princ "part 2: ")
+      (princ (p2-vector path p1ans)))))
   
