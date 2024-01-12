@@ -1,5 +1,5 @@
 ;;;day11
-(ql:quickload '(uiop cl-ppcre))
+(ql:quickload '(uiop cl-ppcre alexandria))
 
 (defconstant +day-number+ 11)
 (defconstant +working-dir+ (uiop:truenamize "~/aoc_2023/"))
@@ -34,11 +34,11 @@
         (push (list line-idx ms) (universe-locs my-universe)))
       (incf line-idx))
     (setf (universe-empty-rows my-universe)
-          (set-difference
+          (nset-difference
            (loop for x from 0 below height collecting x)
            (mapcar #'car (universe-locs my-universe))))
     (setf (universe-empty-cols my-universe)
-          (set-difference
+          (nset-difference
            (loop for x from 0 below width collecting x)
 
            (mapcar #'cadr (universe-locs my-universe))))
