@@ -6,22 +6,21 @@
 (defconstant +input-name-template+ "2023d~dinput.txt")
 
 (defconstant +test-input+
-  '("...#......"
-   ".......#.."
-   "#........."
-   ".........."
-   "......#..."
-   ".#........"
-   ".........#"
-   ".........."
-   ".......#.."
-   "#...#....."))
+"...#......
+.......#..
+#.........
+..........
+......#...
+.#........
+.........#
+..........
+.......#..
+#...#.....")
 
 (defstruct universe
   empty-rows
   empty-cols
   locs)
-
 
 (defun parse-input (lines)
   (let ((regex (ppcre:create-scanner "#"))
@@ -33,6 +32,35 @@
       (ppcre:do-matches (ms me regex l)
         (push (list line-idx ms) (universe-locs my-universe)))
       (incf line-idx))
+    (setf (universe-empty-rows my-universe)
+          (nset-difference
+           (loop for x from 0 below height collecting x)
+           (mapcar #'car (universe-locs my-universe))))
+    (setf (universe-empty-cols my-universe)
+          (nset-difference
+           (loop for x from 0 below width collecting x)
+
+           (mapcar #'cadr (universe-locs my-universe))))
+    my-universe))
+
+(defun read-input (stream)
+  (let ((my-universe (make-universe))
+        (width 0)
+        (height 0)
+        (total 0))
+    (do ((ch (read-char stream) (read-char stream))
+         (line-idx 0)
+         (ch-idx 0 (1+ ch-idx)))
+        ((null ch))
+      (case ch
+        (#\# (push (list line-idx ch-idx)
+                   (universe-locs my-universe)))
+        (#\newline (when (zerop line-idx)
+                     (setf width ch-idx))
+                   (incf line-idx)
+                   (setf ch-idx 0)))
+      (incf total))
+    (setf height (floor total width))
     (setf (universe-empty-rows my-universe)
           (nset-difference
            (loop for x from 0 below height collecting x)
