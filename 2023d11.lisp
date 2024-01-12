@@ -6,16 +6,18 @@
 (defconstant +input-name-template+ "2023d~dinput.txt")
 
 (defconstant +test-input+
-"...#......
-.......#..
-#.........
-..........
-......#...
-.#........
-.........#
-..........
-.......#..
-#...#.....")
+  '("...#......"
+   ".......#.."
+   "#........."
+   ".........."
+   "......#..."
+   ".#........"
+   ".........#"
+   ".........."
+   ".......#.."
+   "#...#....."))
+
+(defconstant +ti-as-string+ (format nil "~{~A~^~&~}" +test-input+))
 
 (defstruct universe
   empty-rows
@@ -46,21 +48,18 @@
 (defun read-input (stream)
   (let ((my-universe (make-universe))
         (width 0)
-        (height 0)
-        (total 0))
-    (do ((ch (read-char stream) (read-char stream))
-         (line-idx 0)
-         (ch-idx 0 (1+ ch-idx)))
+        (height 0))
+    (do ((ch     (read-char stream nil) (read-char stream nil))
+         (ch-idx 0                      (1+ ch-idx)))
         ((null ch))
       (case ch
-        (#\# (push (list line-idx ch-idx)
+        (#\# (push (list height ch-idx)
                    (universe-locs my-universe)))
-        (#\newline (when (zerop line-idx)
-                     (setf width ch-idx))
-                   (incf line-idx)
-                   (setf ch-idx 0)))
-      (incf total))
-    (setf height (floor total width))
+        (#\newline (when (zerop height)
+                     (setf width (1- ch-idx)))
+                   (incf height)
+                   (setf ch-idx -1))))
+    
     (setf (universe-empty-rows my-universe)
           (nset-difference
            (loop for x from 0 below height collecting x)
@@ -68,7 +67,6 @@
     (setf (universe-empty-cols my-universe)
           (nset-difference
            (loop for x from 0 below width collecting x)
-
            (mapcar #'cadr (universe-locs my-universe))))
     my-universe))
 
