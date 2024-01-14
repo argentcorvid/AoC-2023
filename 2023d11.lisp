@@ -33,17 +33,16 @@
         (#\# (push (list height ch-idx)
                    (universe-locs my-universe)))
         (#\newline (when (zerop height)
-                     (setf width ch-idx))
+                     (setf width (1- ch-idx)))
                    (incf height)
-                   (setf ch-idx -1))))
+                   (setf ch-idx -1)))) ; gets incremented to 0 entering next iteration
     (setf (universe-empty-rows my-universe)
           (nset-difference
-           (loop for x from 0 below height collecting x)
+           (alexandria:iota height)
            (mapcar #'car (universe-locs my-universe))))
     (setf (universe-empty-cols my-universe)
           (nset-difference
-           (loop for x from 0 below width collecting x)
-
+           (alexandria:iota width)
            (mapcar #'cadr (universe-locs my-universe))))
     my-universe))
 
