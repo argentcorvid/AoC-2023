@@ -77,14 +77,15 @@
 (defun p2 ()
   )
 
-(defun test (part)
+(defun test (&optional (part 1))
   (when (= part 1)
     (let ((res (with-input-from-string
                    (s +test-input+)
-                 (p1 (read-input s))))))
-    (if (= 374 res)
-        (format t "~&p1 test pass")
-        (format t "~&p1 test fail with ~a" res))))
+                 (p1 (read-input s))))
+          (exp 374))
+      (if (= exp res)
+          (format t "~&p1 test pass")
+          (format t "~&p1 test fail with ~a. should be ~a" res exp)))))
 
 (defun main ()
   (let* ((infile-name (format nil +input-name-template+ +day-number+))
