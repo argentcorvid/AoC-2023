@@ -77,6 +77,15 @@
 (defun p2 ()
   )
 
+(defun test (part)
+  (when (= part 1)
+    (let ((res (with-input-from-string
+                   (s +test-input+)
+                 (p1 (read-input s))))))
+    (if (= 374 res)
+        (format t "~&p1 test pass")
+        (format t "~&p1 test fail with ~a" res))))
+
 (defun main ()
   (let* ((infile-name (format nil +input-name-template+ +day-number+))
          (universe (read-input (uiop:read-file-string infile-name))))
