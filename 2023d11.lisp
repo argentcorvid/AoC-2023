@@ -48,9 +48,11 @@
 
 (defun man-dist (pt1 pt2)
   "find the 'manhattan' distance between 2 points"
-    (reduce #'+ (mapcar (lambda (a b)
-                          (abs (- a b)))
-                 pt1 pt2)))
+    ;; (reduce #'+ (mapcar (lambda (a b)
+    ;;                       (abs (- a b)))
+    ;;              pt1 pt2)) ; conses a lot
+  (+ (abs (- (first pt1) (first pt2))) (abs (- (cadr pt1) (cadr pt2))))
+  )
 
 (defun elts-between (start end cands)
   (when (= start end)
