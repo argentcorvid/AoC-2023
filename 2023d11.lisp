@@ -69,7 +69,7 @@
           count c)))
 
 (defun p1 (my-universe &optional (exp-factor 2))
-  (let (distances-list)
+  (let ((total-distance 0))
     (alexandria:map-combinations
      (lambda (pt-list)
        (let* ((pt1 (car pt-list))
@@ -77,13 +77,15 @@
              (md (man-dist pt1 pt2))
               (x-empties (elts-between (cadr pt1) (cadr pt2) (universe-empty-cols my-universe)))
               (y-empties (elts-between (car pt1) (car pt2) (universe-empty-rows my-universe))))
-         (push (+ md
+         (incf total-distance
+               (+ md
                   (* (1- exp-factor) x-empties)
-                  (* (1- exp-factor) y-empties))
-               distances-list)))
+                  (* (1- exp-factor) y-empties)))))
      (universe-locs my-universe) :length 2 :copy nil)
     
-    (reduce #'+ distances-list))) 
+    ;(reduce #'+ distances-list)
+    total-distance
+    )) 
 
 (defun test (&optional (part 1))
   (when (= part 1)
