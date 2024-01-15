@@ -108,5 +108,5 @@
         (princ (p1 universe))
         (fresh-line)
         (princ "part 2: ")
-        (princ (p1 universe 1e6))))
+        (princ (p1 universe (expt 10 6)))))
     ))
