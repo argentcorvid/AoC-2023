@@ -53,12 +53,14 @@
                  pt1 pt2)))
 
 (defun elts-between (start end cands)
+  (when (= start end)
+    (return-from elts-between nil))
   (let ((mn (min start end))
         (mx (max start end)))
-   (remove-if (lambda (elm)
-                (or (< elm mn mx)
-                    (< mn mx elm)))
-              cands)))
+    (remove-if (lambda (elm)
+                 (or (< elm mn mx)
+                     (< mn mx elm)))
+               cands)))
 
 (defun p1 (my-universe)
   (let (distances-list)
@@ -70,8 +72,10 @@
              (x-empties (length (elts-between (cadr pt1) (cadr pt2) (universe-empty-cols my-universe))))
              (y-empties (length (elts-between (car pt1) (car pt2) (universe-empty-rows my-universe)))))
          (push (+ md x-empties y-empties)
-               distances-list)))
+               distances-list)
+         ))
      (universe-locs my-universe) :length 2 :copy nil)
+    
     (reduce #'+ distances-list))) 
 
 (defun p2 ()
