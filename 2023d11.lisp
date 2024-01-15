@@ -56,13 +56,17 @@
 
 (defun elts-between (start end cands)
   (when (= start end)
-    (return-from elts-between nil))
+    (return-from elts-between 0))
   (let ((mn (min start end))
         (mx (max start end)))
-    (remove-if (lambda (elm)
-                 (or (< elm mn mx)
-                     (< mn mx elm)))
-               cands)))
+    ;; (remove-if (lambda (elm)
+    ;;              (or (< elm mn mx)
+    ;;                  (< mn mx elm)))
+    ;;            cands)
+    (loop for c in cands
+          unless (or (< c mn mx)
+                   (< mn mx c))
+          count c)))
 
 (defun p1 (my-universe &optional (exp-factor 2))
   (let (distances-list)
@@ -71,8 +75,8 @@
        (let* ((pt1 (car pt-list))
              (pt2 (cadr pt-list))
              (md (man-dist pt1 pt2))
-              (x-empties (length (elts-between (cadr pt1) (cadr pt2) (universe-empty-cols my-universe))))
-              (y-empties (length (elts-between (car pt1) (car pt2) (universe-empty-rows my-universe)))))
+              (x-empties (elts-between (cadr pt1) (cadr pt2) (universe-empty-cols my-universe)))
+              (y-empties (elts-between (car pt1) (car pt2) (universe-empty-rows my-universe))))
          (push (+ md
                   (* (1- exp-factor) x-empties)
                   (* (1- exp-factor) y-empties))
