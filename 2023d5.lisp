@@ -1,6 +1,9 @@
 ;;;day5
 (ql:quickload '(uiop str alexandria defclass-std))
-(import '(alexandria:iota defclass-std:defclass/std))
+(import '(alexandria:iota
+          alexandria:lastcar
+          alexandria:last-elt
+          defclass-std:defclass/std))
 
 (defconstant +day-number+ 5)
 (defconstant +working-dir+ (uiop:truenamize "~/aoc_2023/"))
@@ -8,7 +11,7 @@
 
 (defconstant +test-input+
   (str:split #\newline
-             '("seeds: 79 14 55 13
+             "seeds: 79 14 55 13
 
 seed-to-soil map:
 50 98 2
@@ -40,7 +43,7 @@ temperature-to-humidity map:
 
 humidity-to-location map:
 60 56 37
-56 93 4")))
+56 93 4"))
 
 (defclass/std garden-map nil
   ((src-type dest-type :std "" :type string)
@@ -49,7 +52,7 @@ humidity-to-location map:
 
 (defmethod add-range ((obj garden-map) src-start dest-start rng-length)
   (push (list src-start rng-length) (src-list obj))
-  (push (list dest-start rng-length (dest-list obj)))
+  (push (list dest-start rng-length) (dest-list obj))
   )
 
 (defmethod sort-ranges ((obj garden-map))
@@ -62,35 +65,33 @@ humidity-to-location map:
     (setf (dest-list obj) (loop for i in idx-list collecting (nth i (dest-list obj))))))
 
 (defmethod get-target ((obj garden-map) source)
-  (loop for current in (src-list obj)
-        for idx from 0
-        with target = source
-        for start = (first current)
-        for end = (+ (cadr current) (first current))
-        when (and (<= start source)
-                  (< source end))
-         do (setf target (+ (- source start) (first (nth idx (dest-list obj)))))
-            (loop-finish)
-        finally (return target)))
-
-(defparameter maps '(seed-soil 
-                     soil-fert 
-                     fert-watr 
-                     watr-lite 
-                     lite-temp 
-                     temp-humd
-                     humd-locs))
+  (let ((target source)
+        found-range)
+    (flet ((targetp (itm)
+             (and (<= (first itm) source)
+                  (<  source (+ (lastcar itm) (first itm))))))
+      (when (setf found-range (position-if #'targetp (src-list obj)))
+          (setf target (+ (- source
+                             (nth found-range (src-list obj)))
+                          (first (nth found-range (dest-list obj))))))
+      target)))
 
 (defun parse-input (lines)
-  (let (seeds
-        seed-soil 
-        soil-fert 
-        fert-watr 
-        watr-lite 
-        lite-temp 
-        temp-humd
-        humd-locs)
-    ))
+  (let ((seeds (rest (str:split-omit-nulls #\space (pop lines))))
+        (maps (make-hash-table :test #'string=))
+        (cur-name ""))
+    (dolist (l lines maps)
+      (cond ((string= l "")
+             ())
+            ((equal #\: (last-elt l))
+             (setf cur-name ())) ; make it the first 4 characters of the words on either side of '-to-'
+            (null (gethash cur-name maps)
+             (setf (gethash cur-name maps) (make-instance 'garden-map))
+             (add-range (gethash cur-name maps) (str:split-omit-nulls #\space l)))
+            (t
+             (add-range (gethash cur-name maps) (str:split-omit-nulls #\space l)))))
+    (maphash (lambda (mapname gmap) (sort-ranges gmap)))
+    maps))
 
 (defun p1 ()
   ) 
