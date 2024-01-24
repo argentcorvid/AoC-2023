@@ -77,10 +77,10 @@ humidity-to-location map:
       target)))
 
 (defun parse-input (lines)
-  (let ((seeds (rest (str:split-omit-nulls #\space (pop lines))))
+  (let ((seeds (rest (str:split-omit-nulls #\space (first lines))))
         (maps (make-hash-table :test #'string=))
         (cur-name ""))
-    (dolist (l lines maps)
+    (dolist (l (rest lines) maps)
       (cond ((string= l "")
              ())
             ((equal #\: (last-elt l))
