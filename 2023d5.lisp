@@ -46,9 +46,7 @@ humidity-to-location map:
 56 93 4"))
 
 (defclass/std garden-map nil
-  ((src-type dest-type :std "" :type string)
-   (src-list dest-list :std ())
-   ))
+  ((src-list dest-list :std ())))
 
 (defmethod add-range ((obj garden-map) src-start dest-start rng-length)
   (push (list src-start rng-length) (src-list obj))
@@ -80,18 +78,25 @@ humidity-to-location map:
   (let ((seeds (rest (str:split-omit-nulls #\space (first lines))))
         (maps (make-hash-table :test #'string=))
         (cur-name ""))
-    (dolist (l (rest lines) maps)
-      (cond ((string= l "")
-             ())
-            ((equal #\: (last-elt l))
-             (setf cur-name ())) ; make it the first 4 characters of the words on either side of '-to-'
-            (null (gethash cur-name maps)
-             (setf (gethash cur-name maps) (make-instance 'garden-map))
-             (add-range (gethash cur-name maps) (str:split-omit-nulls #\space l)))
-            (t
-             (add-range (gethash cur-name maps) (str:split-omit-nulls #\space l)))))
-    (maphash (lambda (mapname gmap) (sort-ranges gmap)))
-    maps))
+    (flet ((add-line (l)
+             (apply #'add-range
+                    (gethash cur-name maps)
+                    (mapcan #'parse-integer (str:split-omit-nulls #\space l)))))
+      (dolist (l (rest lines))
+        (cond ((string= l "") nil)
+              ((equal #\: (last-elt l))
+               (setf cur-name
+                     (format nil "~{~S~^-~S~}"
+                             (str:split-omit-nulls ; TODO: subseq both to first 4 characters
+                              "-to-:"
+                              l
+                              :end (position #\space l))))) 
+              (null (gethash cur-name maps)
+                    (setf (gethash cur-name maps) (make-instance 'garden-map))
+                    (add-line l))
+              (t (add-line l)))))
+    (maphash (lambda (mapname gmap) (sort-ranges gmap)) maps)
+    (list seeds maps)))
 
 (defun p1 ()
   ) 
