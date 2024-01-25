@@ -46,9 +46,10 @@ humidity-to-location map:
 56 93 4")))
 
 (defclass/std garden-map nil
-  ((src-list dest-list :std ())))
+  ((src-list dest-list :std ())
+   (next-map :std "")))
 
-(defmethod add-range ((obj garden-map) src-start dest-start rng-length)
+(defmethod add-range ((obj garden-map) dest-start src-start rng-length)
   (push (list src-start rng-length) (src-list obj))
   (push (list dest-start rng-length) (dest-list obj))
   )
@@ -70,14 +71,16 @@ humidity-to-location map:
                   (<  source (+ (lastcar itm) (first itm))))))
       (when (setf found-range (position-if #'targetp (src-list obj)))
         (setf target (+ (- source
-                           (nth found-range (src-list obj)))
+                           (first (nth found-range (src-list obj))))
                         (first (nth found-range (dest-list obj))))))
       target)))
 
 (defun parse-input (lines)
   (let ((seeds (mapcar #'parse-integer (rest (str:split-omit-nulls #\space (first lines)))))
         (maps (make-hash-table :test #'equal))
-        (cur-name ""))
+        (cur-name "")
+        (next-name "")
+        (names ()))
     (flet ((add-line (l)
              (apply #'add-range
                     (gethash cur-name maps)
@@ -85,17 +88,16 @@ humidity-to-location map:
       (dolist (l (rest lines))
         (cond ((string= l "") nil)
               ((equal #\: (last-elt l))
-               (setf cur-name
-                     (format nil "~{~A~^-~A~}"
-                             (mapcar
+               (setf names (mapcar
                               (alexandria:curry #'str:substring 0 4)
                               (str:split
                                "-to-"
                                l
-                             ;  :omit-nulls t
-                               :end (position #\space l)))))) 
+                               :end (position #\space l))))
+               (setf cur-name (first names)
+                     next-name (second names))) 
               ((null (gethash cur-name maps))
-               (setf (gethash cur-name maps) (make-instance 'garden-map))
+               (setf (gethash cur-name maps) (make-instance 'garden-map :next-map next-name))
                (add-line l))
               (t (add-line l)))))
     (maphash (lambda (mapname gmap)
