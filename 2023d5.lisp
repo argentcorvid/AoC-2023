@@ -10,8 +10,8 @@
 (defconstant +input-name-template+ "2023d~dinput.txt")
 
 (defconstant +test-input+
-  (str:split #\newline
-             "seeds: 79 14 55 13
+  (mapcar #'uiop:stripln (str:split #\newline
+              "seeds: 79 14 55 13
 
 seed-to-soil map:
 50 98 2
@@ -43,7 +43,7 @@ temperature-to-humidity map:
 
 humidity-to-location map:
 60 56 37
-56 93 4"))
+56 93 4")))
 
 (defclass/std garden-map nil
   ((src-list dest-list :std ())))
@@ -69,33 +69,38 @@ humidity-to-location map:
              (and (<= (first itm) source)
                   (<  source (+ (lastcar itm) (first itm))))))
       (when (setf found-range (position-if #'targetp (src-list obj)))
-          (setf target (+ (- source
-                             (nth found-range (src-list obj)))
-                          (first (nth found-range (dest-list obj))))))
+        (setf target (+ (- source
+                           (nth found-range (src-list obj)))
+                        (first (nth found-range (dest-list obj))))))
       target)))
 
 (defun parse-input (lines)
   (let ((seeds (rest (str:split-omit-nulls #\space (first lines))))
-        (maps (make-hash-table :test #'string=))
+        (maps (make-hash-table :test #'equal))
         (cur-name ""))
     (flet ((add-line (l)
              (apply #'add-range
                     (gethash cur-name maps)
-                    (mapcan #'parse-integer (str:split-omit-nulls #\space l)))))
+                    (mapcar #'parse-integer (str:split-omit-nulls #\space l)))))
       (dolist (l (rest lines))
         (cond ((string= l "") nil)
               ((equal #\: (last-elt l))
                (setf cur-name
-                     (format nil "~{~S~^-~S~}"
-                             (str:split-omit-nulls ; TODO: subseq both to first 4 characters
-                              "-to-:"
-                              l
-                              :end (position #\space l))))) 
-              (null (gethash cur-name maps)
-                    (setf (gethash cur-name maps) (make-instance 'garden-map))
-                    (add-line l))
+                     (format nil "~{~A~^-~A~}"
+                             (mapcar
+                              (alexandria:curry #'str:substring 0 4)
+                              (str:split
+                               "-to-"
+                               l
+                             ;  :omit-nulls t
+                               :end (position #\space l)))))) 
+              ((null (gethash cur-name maps))
+               (setf (gethash cur-name maps) (make-instance 'garden-map))
+               (add-line l))
               (t (add-line l)))))
-    (maphash (lambda (mapname gmap) (sort-ranges gmap)) maps)
+    (maphash (lambda (mapname gmap)
+               (declare (ignorable mapname))
+               (sort-ranges gmap)) maps)
     (list seeds maps)))
 
 (defun p1 ()
