@@ -75,7 +75,7 @@ humidity-to-location map:
       target)))
 
 (defun parse-input (lines)
-  (let ((seeds (rest (str:split-omit-nulls #\space (first lines))))
+  (let ((seeds (mapcar #'parse-integer (rest (str:split-omit-nulls #\space (first lines)))))
         (maps (make-hash-table :test #'equal))
         (cur-name ""))
     (flet ((add-line (l)
