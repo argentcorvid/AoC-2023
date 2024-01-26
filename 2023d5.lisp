@@ -68,6 +68,7 @@ humidity-to-location map:
     (setf (dest-list obj) (loop for i in idx-list collecting (nth i (dest-list obj))))))
 
 (defmethod get-target ((obj garden-map) source)
+  (declare (fixnum source))
   (let ((target source)
         found-range)
     (flet ((targetp (itm)
@@ -92,20 +93,21 @@ humidity-to-location map:
                     (assoc-value map-alist cur-name :test #'string=)
                     (mapcar #'parse-integer (str:split-omit-nulls #\space l)))))
       (dolist (l (rest lines))
+        (declare (string l))
         (cond ((string= l "") nil)
               ((equal #\: (last-elt l))
                (setf names (mapcar
-                              (curry #'str:substring 0 4)
-                              (str:split
-                               "-to-"
-                               l
-                               :end (position #\space l))))
+                            (curry #'str:substring 0 4)
+                            (str:split
+                             "-to-"
+                             l
+                             :end (position #\space l))))
                (setf cur-name (first names)
                      next-name (second names))) 
               ((null (assoc cur-name map-alist :test #'string=))
-                    ;(gethash cur-name maps)
+                                        ;(gethash cur-name maps)
                 
-               ;(setf (gethash cur-name maps) (make-instance 'garden-map :next-map next-name))
+                                        ;(setf (gethash cur-name maps) (make-instance 'garden-map :next-map next-name))
                (push (cons cur-name (make-instance 'garden-map :next-map next-name)) map-alist)
                (add-line l))
               (t (add-line l)))))
@@ -122,12 +124,14 @@ humidity-to-location map:
         (maps (second data))
         (res ()))
     (labels ((recur-lookup (mapname number)
+               (declare (simple-string mapname)
+                        (fixnum number))
                (let ((current-map (assoc-value maps mapname :test #'string=)))
                  (if (string= mapname "loca")
                      number
                      (recur-lookup (next-map current-map)
                                    (get-target current-map number))))))
-      (setf res (lparallel:pmapcar (curry #'recur-lookup "seed") seeds :parts 15))
+      (setf res (lparallel:pmapcar (curry #'recur-lookup "seed") :parts 15 seeds))
       (values (apply #'min res) res)))) 
 
 (defun brute-force-p2 (data)
