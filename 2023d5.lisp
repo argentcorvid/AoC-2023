@@ -1,17 +1,12 @@
 ;;;day5
-(ql:quickload '(uiop str alexandria defclass-std))
-(import '(alexandria:iota
-          alexandria:lastcar
-          alexandria:last-elt
-          defclass-std:defclass/std))
+(ql:quickload '("uiop" "str"))
 
 (defconstant +day-number+ 5)
 (defconstant +working-dir+ (uiop:truenamize "~/aoc_2023/"))
 (defconstant +input-name-template+ "2023d~dinput.txt")
 
 (defconstant +test-input+
-  (mapcar #'uiop:stripln (str:split #\newline
-              "seeds: 79 14 55 13
+  '("seeds: 79 14 55 13
 
 seed-to-soil map:
 50 98 2
@@ -39,71 +34,10 @@ light-to-temperature map:
 
 temperature-to-humidity map:
 0 69 1
-1 0 69
-
-humidity-to-location map:
-60 56 37
-56 93 4")))
-
-(defclass/std garden-map nil
-  ((src-list dest-list :std ())
-   (next-map :std "")))
-
-(defmethod add-range ((obj garden-map) dest-start src-start rng-length)
-  (push (list src-start rng-length) (src-list obj))
-  (push (list dest-start rng-length) (dest-list obj))
-  )
-
-(defmethod sort-ranges ((obj garden-map))
-  (let ((idx-list
-          (sort (iota (length (src-list obj)))
-                #'<
-                :key (lambda (idx)
-                       (first (nth idx (src-list obj)))))))
-    (setf (src-list obj) (loop for i in idx-list collecting (nth i (src-list obj))))
-    (setf (dest-list obj) (loop for i in idx-list collecting (nth i (dest-list obj))))))
-
-(defmethod get-target ((obj garden-map) source)
-  (let ((target source)
-        found-range)
-    (flet ((targetp (itm)
-             (and (<= (first itm) source)
-                  (<  source (+ (lastcar itm) (first itm))))))
-      (when (setf found-range (position-if #'targetp (src-list obj)))
-        (setf target (+ (- source
-                           (first (nth found-range (src-list obj))))
-                        (first (nth found-range (dest-list obj))))))
-      target)))
+1 0 69"))
 
 (defun parse-input (lines)
-  (let ((seeds (mapcar #'parse-integer (rest (str:split-omit-nulls #\space (first lines)))))
-        (maps (make-hash-table :test #'equal))
-        (cur-name "")
-        (next-name "")
-        (names ()))
-    (flet ((add-line (l)
-             (apply #'add-range
-                    (gethash cur-name maps)
-                    (mapcar #'parse-integer (str:split-omit-nulls #\space l)))))
-      (dolist (l (rest lines))
-        (cond ((string= l "") nil)
-              ((equal #\: (last-elt l))
-               (setf names (mapcar
-                              (alexandria:curry #'str:substring 0 4)
-                              (str:split
-                               "-to-"
-                               l
-                               :end (position #\space l))))
-               (setf cur-name (first names)
-                     next-name (second names))) 
-              ((null (gethash cur-name maps))
-               (setf (gethash cur-name maps) (make-instance 'garden-map :next-map next-name))
-               (add-line l))
-              (t (add-line l)))))
-    (maphash (lambda (mapname gmap)
-               (declare (ignorable mapname))
-               (sort-ranges gmap)) maps)
-    (list seeds maps)))
+  )
 
 (defun p1 ()
   ) 
