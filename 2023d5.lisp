@@ -88,7 +88,7 @@ humidity-to-location map:
     (flet ((add-line (l)
              (apply #'add-range
                     ;(gethash cur-name maps)
-                    (assoc-value cur-name map-alist :test #'string=)
+                    (assoc-value map-alist cur-name :test #'string=)
                     (mapcar #'parse-integer (str:split-omit-nulls #\space l)))))
       (dolist (l (rest lines))
         (cond ((string= l "") nil)
@@ -116,8 +116,18 @@ humidity-to-location map:
           map-alist)
     (list seeds map-alist)))
 
-(defun p1 ()
-  ) 
+(defun p1 (data)
+  (let ((seeds (first data))
+        (maps (second data))
+        (res ()))
+    (labels ((recur-lookup (mapname number)
+               (let ((current-map (assoc-value maps mapname :test #'string=)))
+                 (if (string= mapname "loca")
+                     number
+                     (recur-lookup (next-map current-map)
+                                   (get-target current-map number))))))
+      (setf res (mapcar (curry #'recur-lookup "seed") seeds))
+      (values (apply #'min res) res)))) 
 
 (defun p2 ()
   )
