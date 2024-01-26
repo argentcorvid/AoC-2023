@@ -129,8 +129,12 @@ humidity-to-location map:
       (setf res (mapcar (curry #'recur-lookup "seed") seeds))
       (values (apply #'min res) res)))) 
 
-(defun p2 ()
-  )
+(defun brute-force-p2 (data)
+  (let ((seeds (first data))
+        (maps (second data))
+        (res ()))
+    (setf seeds (loop for (seed length) on seeds by #'cddr nconcing (iota length :start seed)))
+    (p1 (list seeds maps))))
 
 (defun main ()
   (let* ((infile-name (format nil +input-name-template+ +day-number+))
