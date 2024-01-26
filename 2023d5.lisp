@@ -1,5 +1,6 @@
 ;;;day5
 (ql:quickload '(uiop str alexandria defclass-std))
+(ql:quickload :lparallel)
 (import '(alexandria:iota
           alexandria:assoc-value
           alexandria:lastcar
@@ -126,14 +127,13 @@ humidity-to-location map:
                      number
                      (recur-lookup (next-map current-map)
                                    (get-target current-map number))))))
-      (setf res (mapcar (curry #'recur-lookup "seed") seeds))
+      (setf res (lparallel:pmapcar (curry #'recur-lookup "seed") seeds :parts 15))
       (values (apply #'min res) res)))) 
 
 (defun brute-force-p2 (data)
   (let ((seeds (first data))
-        (maps (second data))
-        (res ()))
-    (setf seeds (loop for (seed length) on seeds by #'cddr nconcing (iota length :start seed)))
+        (maps (second data)))
+    (setf seeds (loop for (seed length) on seeds by #'cddr nconcing (iota length :start seed))) ; crashes lisp - too many numbers!
     (p1 (list seeds maps))))
 
 (defun main ()
