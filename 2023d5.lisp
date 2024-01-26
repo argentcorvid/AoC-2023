@@ -1,8 +1,11 @@
 ;;;day5
 (ql:quickload '(uiop str alexandria defclass-std))
 (import '(alexandria:iota
+          alexandria:assoc-value
           alexandria:lastcar
           alexandria:last-elt
+          alexandria:curry
+          alexandria:compose
           defclass-std:defclass/std))
 
 (defconstant +day-number+ 5)
@@ -77,33 +80,41 @@ humidity-to-location map:
 
 (defun parse-input (lines)
   (let ((seeds (mapcar #'parse-integer (rest (str:split-omit-nulls #\space (first lines)))))
-        (maps (make-hash-table :test #'equal))
+        ;(maps (make-hash-table :test #'equal))
+        (map-alist ())
         (cur-name "")
         (next-name "")
         (names ()))
     (flet ((add-line (l)
              (apply #'add-range
-                    (gethash cur-name maps)
+                    ;(gethash cur-name maps)
+                    (assoc-value cur-name map-alist :test #'string=)
                     (mapcar #'parse-integer (str:split-omit-nulls #\space l)))))
       (dolist (l (rest lines))
         (cond ((string= l "") nil)
               ((equal #\: (last-elt l))
                (setf names (mapcar
-                              (alexandria:curry #'str:substring 0 4)
+                              (curry #'str:substring 0 4)
                               (str:split
                                "-to-"
                                l
                                :end (position #\space l))))
                (setf cur-name (first names)
                      next-name (second names))) 
-              ((null (gethash cur-name maps))
-               (setf (gethash cur-name maps) (make-instance 'garden-map :next-map next-name))
+              ((null (assoc cur-name map-alist :test #'string=))
+                    ;(gethash cur-name maps)
+                
+               ;(setf (gethash cur-name maps) (make-instance 'garden-map :next-map next-name))
+               (push (cons cur-name (make-instance 'garden-map :next-map next-name)) map-alist)
                (add-line l))
               (t (add-line l)))))
-    (maphash (lambda (mapname gmap)
-               (declare (ignorable mapname))
-               (sort-ranges gmap)) maps)
-    (list seeds maps)))
+    ;; (maphash (lambda (mapname gmap)
+    ;;            (declare (ignorable mapname))
+    ;;            (sort-ranges gmap)) maps)
+    (mapc #'(lambda (gmap)
+              (sort-ranges (cdr gmap)))
+          map-alist)
+    (list seeds map-alist)))
 
 (defun p1 ()
   ) 
