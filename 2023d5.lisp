@@ -1,6 +1,6 @@
 ;;;day5
 (ql:quickload '(uiop str alexandria defclass-std))
-(ql:quickload :lparallel)
+;; (ql:quickload :lparallel)
 (import '(alexandria:iota
           alexandria:assoc-value
           alexandria:lastcar
@@ -67,18 +67,20 @@ humidity-to-location map:
     (setf (src-list obj) (loop for i in idx-list collecting (nth i (src-list obj))))
     (setf (dest-list obj) (loop for i in idx-list collecting (nth i (dest-list obj))))))
 
+(defun targetp (source itm)
+  (and (<= (first itm) source)
+       (<  source (+ (lastcar itm) (first itm)))))
+
 (defmethod get-target ((obj garden-map) source)
   (declare (fixnum source))
   (let ((target source)
         found-range)
-    (flet ((targetp (itm)
-             (and (<= (first itm) source)
-                  (<  source (+ (lastcar itm) (first itm))))))
-      (when (setf found-range (position-if #'targetp (src-list obj)))
-        (setf target (+ (- source
-                           (first (nth found-range (src-list obj))))
-                        (first (nth found-range (dest-list obj))))))
-      target)))
+    
+    (when (setf found-range (position-if (curry #'targetp source) (src-list obj)))
+      (setf target (+ (- source
+                         (first (nth found-range (src-list obj))))
+                      (first (nth found-range (dest-list obj))))))
+    target))
 
 (defun parse-input (lines)
   (let ((seeds (mapcar #'parse-integer (rest (str:split-omit-nulls #\space (first lines)))))
@@ -131,8 +133,32 @@ humidity-to-location map:
                      number
                      (recur-lookup (next-map current-map)
                                    (get-target current-map number))))))
-      (setf res (lparallel:pmapcar (curry #'recur-lookup "seed") :parts 15 seeds))
+      ;; (setf res (lparallel:pmapcar (curry #'recur-lookup "seed") :parts 15 seeds))
+      (setf res (mapcar (curry #'recur-lookup "seed") seeds))
       (values (apply #'min res) res)))) 
+
+(defmethod split-map-ranges ((obj garden-map)
+                             seed-ranges)
+  (let ((input-range (src-list obj))
+        (output-range (dest-list obj))
+        (range-list ()))
+    (dolist (srange seed-ranges range-list)
+      (let* ((seed-start (first srange))
+             (seed-end (+ seed-start
+                          (second srange)))
+             (begin-found (find-if (curry #'targetp seed-start) (src-list obj)))
+             (end-found (find-if (curry #'targetp seed-end) (src-list obj))))
+        (if (and (null begin-found)
+                 (null end-found))
+            (push srange range-list)
+            ())))))
+
+(defun p2 (data)
+  (let ((seeds (loop for s on (first data)
+                     by #'cddr
+                     collect s))
+        (maps (second data)))
+    ))
 
 (defun brute-force-p2 (data)
   (let ((seeds (first data))
