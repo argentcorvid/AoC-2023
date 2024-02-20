@@ -6,6 +6,7 @@
 (import '(alexandria:assoc-value
           alexandria:compose
           alexandria:curry
+          alexandria:xor
           defclass-std:class/std))
 
 (defconstant +day-number+ 5)
@@ -46,22 +47,16 @@ temperature-to-humidity map:
 (defclass/std range nil
   ((start end length :type fixnum :with)))
 
-(defmethod make-range-with-end ((start fixnum) (end fixnum))
-  (make-instance 'range :range-start start :range-end end :range-length (- end start)))
-
-;; methods must have same number of args :(
-;; (defmethod make-range-from-start-to-end ((s-e cons))
-;;   (if (= 2 (length s-e))
-;;       (make-range-from-start-to-end (first s-e) (second s-e))
-;;       (error "argument must be list of numbers of length 2")))
-
-(defmethod make-range-with-length ((start fixnum) (length fixnum))
-  (make-instance 'range :range-start start :range-end (+ start length) :range-length length))
-
-;; (defmethod make-range-from-start-to-length ((s-l cons))
-;;   (if (= 2 (length s-l))
-;;       (make-range-from-start-to-length (first s-l) (second s-l))
-;;       (error "argument must be list of numbers of length 2")))
+(defmethod initialize-instance :after ((rng range) &key)
+  (alexandria:if-let
+      ((end-bound? (slot-boundp rng 'end))
+       (len-bound? (slot-boundp rng 'length)))
+    (error "Only one of 'end' or 'length' may be specified in initializing ~S" rng)
+    (when (xor end-bound? len-bound?)
+      (when end-bound?
+        (setf (slot-value rng 'length) (- (slot-value rng 'end) (slot-value rng 'start))))
+      (when len-bound?
+        (setf (slot-value rng 'end) (+ (slot-value rng 'length) (slot-value rng 'start))))))))
 
 (defmethod range< ((r1 range) (r2 range))
   (and (< (range-start r1) (range-start r2))
