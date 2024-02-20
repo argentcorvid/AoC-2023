@@ -48,15 +48,16 @@ temperature-to-humidity map:
   ((start end length :type fixnum :with)))
 
 (defmethod initialize-instance :after ((rng range) &key)
-  (alexandria:if-let
-      ((end-bound? (slot-boundp rng 'end))
-       (len-bound? (slot-boundp rng 'length)))
-    (error "Only one of 'end' or 'length' may be specified in initializing ~S" rng)
-    (when (xor end-bound? len-bound?)
-      (when end-bound?
-        (setf (slot-value rng 'length) (- (slot-value rng 'end) (slot-value rng 'start))))
-      (when len-bound?
-        (setf (slot-value rng 'end) (+ (slot-value rng 'length) (slot-value rng 'start))))))))
+  (with-slots (start end length) rng
+    (alexandria:if-let
+        ((end-bound? (slot-boundp rng 'end))
+         (len-bound? (slot-boundp rng 'length)))
+      (error "Only one of 'end' or 'length' may be specified in initializing ~S" rng)
+      (progn
+        (when end-bound?
+          (setf length (- end start)))
+        (when len-bound?
+          (setf end (+ length start)))))))
 
 (defmethod range< ((r1 range) (r2 range))
   (and (< (range-start r1) (range-start r2))
