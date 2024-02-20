@@ -45,13 +45,34 @@ temperature-to-humidity map:
 1 0 69"))
 
 (defclass/std range nil
-  ((start end length :type fixnum :with)))
+  ((start end :type fixnum :with :std 0)
+   (length :type fixnum :with :ri :std 0)))
+
+(defmethod compute-length ((rng range))
+  (with-slots (start end length) rng
+    (setf length (- end start))))
+
+(defmethod (setf range-start) :after (new-start (rng range))
+  ":after method to compute new length of range when setting new start"
+  (declare (ignore new-start))
+  (compute-length rng))
+
+(defmethod (setf range-end) :after (new-end (rng range))
+  ":after method to compute new length of range when setting new end"
+  (declare (ignore new-end))
+  (compute-length rng))
+
+;; (defmethod (setf range-length) :after (new (rng range))
+;;   (declare (ignore new))
+;;   ":after method to signal error if setting length by itself"
+;;   (error "Setting length by itself is ambiguous in ~S" rng))
 
 (defmethod initialize-instance :after ((rng range) &key)
+  ":after method to ensure length is set correctly on initialization"
   (with-slots (start end length) rng
     (alexandria:if-let
-        ((end-bound? (slot-boundp rng 'end))
-         (len-bound? (slot-boundp rng 'length)))
+        ((end-bound? (/= 0 end))
+         (len-bound? (/= 0 length)))
       (error "Only one of 'end' or 'length' may be specified in initializing ~S" rng)
       (progn
         (when end-bound?
@@ -61,7 +82,7 @@ temperature-to-humidity map:
 
 (defmethod range< ((r1 range) (r2 range))
   (and (< (range-start r1) (range-start r2))
-       (< (range-length r1) (range-length r2))))
+       (<= (range-length r1) (range-length r2))))
 
 (defmethod range= ((r1 range) (r2 range))
   (and (= (range-start r1) (range-start r2))
