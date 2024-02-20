@@ -5,6 +5,7 @@
 
 (import '(alexandria:assoc-value
           alexandria:compose
+          alexandria:curry
           defclass-std:class/std))
 
 (defconstant +day-number+ 5)
@@ -45,7 +46,7 @@ temperature-to-humidity map:
 (defclass/std range nil
   ((start end length :type fixnum :with)))
 
-(defmethod make-range-from-start-to-end ((start fixnum) (end fixnum))
+(defmethod make-range-with-end ((start fixnum) (end fixnum))
   (make-instance 'range :range-start start :range-end end :range-length (- end start)))
 
 ;; methods must have same number of args :(
@@ -54,8 +55,8 @@ temperature-to-humidity map:
 ;;       (make-range-from-start-to-end (first s-e) (second s-e))
 ;;       (error "argument must be list of numbers of length 2")))
 
-(defmethod make-range-from-start-to-length ((start fixnum) (length fixnum))
-  (make-instance range :range-start start :range-end (+ start length) :range-length length))
+(defmethod make-range-with-length ((start fixnum) (length fixnum))
+  (make-instance 'range :range-start start :range-end (+ start length) :range-length length))
 
 ;; (defmethod make-range-from-start-to-length ((s-l cons))
 ;;   (if (= 2 (length s-l))
@@ -66,16 +67,23 @@ temperature-to-humidity map:
   (and (< (range-start r1) (range-start r2))
        (< (range-length r1) (range-length r2))))
 
+(defmethod range= ((r1 range) (r2 range))
+  (and (= (range-start r1) (range-start r2))
+       (= (range-end r1) (range-end r2))))
+
 (defmethod range-overlap? ((r1 range) (r2 range))
   (let ((ranges (sort (list r1 r2) #'range<)))
     (and (<= (range-start (first ranges)) (range-start (second ranges)))
          (>= (range-end (first ranges)) (range-start (second ranges))))))
 
 (defmethod range-split ((rng range) (index fixnum))
-  (list (fste start index-1) (fste index end)))
-
-(defmethod range-split ((rng1 range) (rng2 range))
+  ;; (list (fste start index-1) (fste index end))
   )
+
+(defmethod range-split ((r1 range) (r2 range))
+  (cond
+    ((range-overlap? r1 r2)
+     (list (make-range-with-end)))))
 
 (defclass/std range-mapping nil
   ((input-range output-range :type range)))
