@@ -81,8 +81,7 @@ temperature-to-humidity map:
           (setf end (+ length start)))))))
 
 (defmethod range< ((r1 range) (r2 range))
-  (and (< (range-start r1) (range-start r2))
-       (<= (range-length r1) (range-length r2))))
+  (< (range-start r1) (range-start r2)))
 
 (defmethod range= ((r1 range) (r2 range))
   (and (= (range-start r1) (range-start r2))
@@ -93,26 +92,48 @@ temperature-to-humidity map:
     (and (<= (range-start (first ranges)) (range-start (second ranges)))
          (>= (range-end (first ranges)) (range-start (second ranges))))))
 
-(defmethod range-split ((rng range) (index fixnum))
-  ;; (list (fste start index-1) (fste index end))
-  )
-
 (defmethod range-split ((r1 range) (r2 range))
-  (cond
-    ((range-overlap? r1 r2)
-     (list (make-range-with-end)))))
+  (if (range-overlap? r1 r2)
+      (list ())
+      ()))
 
 (defclass/std range-mapping nil
-  ((input-range output-range :type range)))
+  ((input-range output-range :type range :ri)))
 
+(defmethod initialize-instance :after ((mapping range-mapping) &key)
+  (with-slots (input-range output-range) mapping
+    (with-slots ((in-length length)) input-range
+      (with-slots ((out-length length)) output-range
+        (when (/= in-length out-length)
+          (error "input and output range lengths must be equal in ~s" mapping))))))
 
+(defmethod range-translate ((map range-mapping) (input-number integer))
+  (with-accessors ((in input-range) (out output-range)) map
+    (with-accessors ((in-start range-start)(in-end range-end)) in
+      (with-accessors ((out-start range-start)) out
+        (if (<= in-start input-number in-end)
+            (+ out-start (- input-number in-start))
+            input-number)))))
 
-(defclass/std garden-map nil
+(defmethod range-translate ((map range-mapping) (input-range range))
+  )
+
+(defclass/std garden-map-entry nil
   ((in-name out-name :type string)
-   (mappings :type cons)))
+   (mappings :type cons :std ())))
+
+(defmethod map-entry-sort (gm garden-map-entry)
+  (setf (mappings gm) (sort (mappings gm) #'range< :key #'input-range)))
+
+(defmethod initialize-instance :after ((gm garden-map-entry) &key)
+  (map-entry-sort gm))
+
+(defmethod add-mapping ((gm garden-map-entry) (new-map range-mapping))
+  (push new-map (mappings gm))
+  (map-entry-sort gm))
 
 (defun parse-input (lines)
-  )
+  (let ((seeds (second (str:split-omit-nulls ":" (first lines)))))))
 
 (defun p1 ()
   ) 
