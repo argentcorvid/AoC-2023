@@ -157,17 +157,24 @@ temperature-to-humidity map:
                                   l
                                   :end (position #\space l))))
              (setf cur-name (first names)
-                   next-name (second names))) 
-            (t (when (null (assoc cur-name map-alist :test #'string=)) ;map is empty,;)
-                 (push (cons cur-name (make-instance 'garden-map-entry :in-name cur-name :out-name next-name)) map-alist))
-               (let ((nums (mapcar #'parse-integer (str:split #\space l))))
+                   next-name (second names))
+             (push (cons cur-name (make-instance 'garden-map-entry :in-name cur-name :out-name next-name)) map-alist)) 
+            (t (let ((nums (mapcar #'parse-integer (str:split #\space l))))
                  (add-mapping (cdr (first map-alist))
                               (make-instance 'range-mapping :in-start (second nums) :out-start (first nums) :length (third nums)))))))
     
     (list seeds map-alist)))
 
-(defun p1 ()
-  ) 
+(defun p1 (data)
+  (let ((seeds (first data))
+        (maps (second data)))
+    (loop for seed in seeds
+          minimize (loop for mapname = "seed" then (out-name (assoc-value maps mapname))
+                         for mapping = (assoc-value maps mapname :test #'string=) ; this is a list not a single value
+                         with val = seed
+                         until (string= mapname "loca")
+                         do (setf val (range-translate mapping seed)) ;make a new method to call here?
+                         finally (return val)))))
 
 (defun p2 ()
   )
