@@ -6,7 +6,7 @@
 (import '(alexandria:assoc-value
           alexandria:compose
           alexandria:curry
-          alexandria:xor
+          alexandria:last-elt
           defclass-std:class/std))
 
 (defconstant +day-number+ 5)
@@ -98,7 +98,12 @@ temperature-to-humidity map:
       ()))
 
 (defclass/std range-mapping nil
-  ((input-range output-range :type range :ri)))
+  ((input-range output-range :type range :r)))
+
+(defmethod initialize-instance ((rm range-mapping) &key (in-start 0) (out-start 0) (length 0))
+  (with-slots ((in input-range) (out output-range)) rm
+    (setf in (make-instance 'range :start in-start :length length))
+    (setf out (make-instance 'range :start out-start :length length))))
 
 (defmethod initialize-instance :after ((mapping range-mapping) &key)
   (with-slots (input-range output-range) mapping
@@ -122,7 +127,7 @@ temperature-to-humidity map:
   ((in-name out-name :type string)
    (mappings :type cons :std ())))
 
-(defmethod map-entry-sort (gm garden-map-entry)
+(defmethod map-entry-sort ((gm garden-map-entry))
   (setf (mappings gm) (sort (mappings gm) #'range< :key #'input-range)))
 
 (defmethod initialize-instance :after ((gm garden-map-entry) &key)
@@ -133,7 +138,31 @@ temperature-to-humidity map:
   (map-entry-sort gm))
 
 (defun parse-input (lines)
-  (let ((seeds (second (str:split-omit-nulls ":" (first lines)))))))
+  (let ((seeds (mapcar #'parse-integer (rest (str:split-omit-nulls #\space (first lines)))))
+        (map-alist ())
+        (cur-name "")
+        (next-name "")
+        (names ()))
+    (dolist (l (rest lines))
+      (cond ((string= l "") nil) ;do nothing
+            ((equal #\: (last-elt l)) ; this line is a name, get ready for a new map
+             (setf names (mapcar (curry #'str:substring 0 4)
+                                 (str:split
+                                  "-to-"
+                                  l
+                                  :end (position #\space l))))
+             (setf cur-name (first names)
+                   next-name (second names))) 
+            ((null (assoc cur-name map-alist :test #'string=)) ;map is empty, 
+             (let ((nums (mapcar #'parse-integer (str:split #\space l))))
+               (push (cons cur-name (make-instance 'garden-map-entry :in-name cur-name :out-name next-name)) map-alist)
+               (add-mapping (cdr (first map-alist))
+                            (make-instance 'range-mapping :in-start (second nums) :out-start (first nums) :length (third nums)))))
+            (t (let ((nums (mapcar #'parse-integer (str:split #\space l))))
+                 (add-mapping (cdr (first map-alist))
+                              (make-instance 'range-mapping :in-start (second nums) :out-start (first nums) :length (third nums)))))))
+    
+    (list seeds map-alist)))
 
 (defun p1 ()
   ) 
