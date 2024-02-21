@@ -7,7 +7,7 @@
           alexandria:compose
           alexandria:curry
           alexandria:last-elt
-          defclass-std:class/std))
+          defclass-std:defclass/std))
 
 (defconstant +day-number+ 5)
 (defconstant +working-dir+ (uiop:truenamize "~/aoc_2023/"))
@@ -61,6 +61,11 @@ temperature-to-humidity map:
   ":after method to compute new length of range when setting new end"
   (declare (ignore new-end))
   (compute-length rng))
+
+(defmethod print-object ((rng range) stream)
+  (print-unreadable-object (rng stream :type t)
+    (with-slots (start end length) rng
+      (format stream "start: ~a, end: ~a, length: ~a" start end length))))
 
 ;; (defmethod (setf range-length) :after (new (rng range))
 ;;   (declare (ignore new))
@@ -157,7 +162,7 @@ temperature-to-humidity map:
                  (push (cons cur-name (make-instance 'garden-map-entry :in-name cur-name :out-name next-name)) map-alist))
                (let ((nums (mapcar #'parse-integer (str:split #\space l))))
                  (add-mapping (cdr (first map-alist))
-                              (make-instance 'range-mapping :in-start (second nums) :out-start (first nums) :length (third nums))))))
+                              (make-instance 'range-mapping :in-start (second nums) :out-start (first nums) :length (third nums)))))))
     
     (list seeds map-alist)))
 
