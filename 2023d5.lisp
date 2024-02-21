@@ -153,14 +153,11 @@ temperature-to-humidity map:
                                   :end (position #\space l))))
              (setf cur-name (first names)
                    next-name (second names))) 
-            ((null (assoc cur-name map-alist :test #'string=)) ;map is empty, 
-             (let ((nums (mapcar #'parse-integer (str:split #\space l))))
-               (push (cons cur-name (make-instance 'garden-map-entry :in-name cur-name :out-name next-name)) map-alist)
-               (add-mapping (cdr (first map-alist))
-                            (make-instance 'range-mapping :in-start (second nums) :out-start (first nums) :length (third nums)))))
-            (t (let ((nums (mapcar #'parse-integer (str:split #\space l))))
+            (t (when (null (assoc cur-name map-alist :test #'string=)) ;map is empty,;)
+                 (push (cons cur-name (make-instance 'garden-map-entry :in-name cur-name :out-name next-name)) map-alist))
+               (let ((nums (mapcar #'parse-integer (str:split #\space l))))
                  (add-mapping (cdr (first map-alist))
-                              (make-instance 'range-mapping :in-start (second nums) :out-start (first nums) :length (third nums)))))))
+                              (make-instance 'range-mapping :in-start (second nums) :out-start (first nums) :length (third nums))))))
     
     (list seeds map-alist)))
 
