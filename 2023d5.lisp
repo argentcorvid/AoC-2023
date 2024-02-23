@@ -92,6 +92,10 @@ temperature-to-humidity map:
   (and (= (range-start r1) (range-start r2))
        (= (range-end r1) (range-end r2))))
 
+(defmethod range-contain? ((rng range) (num integer))
+  (with-slots (start end) rng
+    (<= start num end)))
+
 (defmethod range-overlap? ((r1 range) (r2 range))
   (let ((ranges (sort (list r1 r2) #'range<)))
     (and (<= (range-start (first ranges)) (range-start (second ranges)))
@@ -142,6 +146,15 @@ temperature-to-humidity map:
   (push new-map (mappings gm))
   (map-entry-sort gm))
 
+(defmethod do-mapping ((gm garden-map-entry) (input integer))
+  (let ((map-found (find-if (alexandria:rcurry #'range-contain? input)
+                            (mappings gm)
+                            :key #'(lambda (itm)
+                                     (input-range itm)))))
+    (if map-found
+        (range-translate map-found input)
+        input)))
+
 (defun parse-input (lines)
   (let ((seeds (mapcar #'parse-integer (rest (str:split-omit-nulls #\space (first lines)))))
         (map-alist ())
@@ -149,7 +162,7 @@ temperature-to-humidity map:
         (next-name "")
         (names ()))
     (dolist (l (rest lines))
-      (cond ((string= l "") nil) ;do nothing
+      (cond ((string= l "") nil)        ;do nothing
             ((equal #\: (last-elt l)) ; this line is a name, get ready for a new map
              (setf names (mapcar (curry #'str:substring 0 4)
                                  (str:split
@@ -169,11 +182,11 @@ temperature-to-humidity map:
   (let ((seeds (first data))
         (maps (second data)))
     (loop for seed in seeds
-          minimize (loop for mapname = "seed" then (out-name (assoc-value maps mapname))
-                         for mapping = (assoc-value maps mapname :test #'string=) ; this is a list not a single value
+          minimize (loop for mapname = "seed" then (out-name (assoc-value maps mapname :test #'string=))
+                         for map = (assoc-value maps mapname :test #'string=) ; this is a list not a single value
                          with val = seed
                          until (string= mapname "loca")
-                         do (setf val (range-translate mapping seed)) ;make a new method to call here?
+                         do (setf val (do-mapping map val)) ;make a new method to call here?
                          finally (return val)))))
 
 (defun p2 ()
