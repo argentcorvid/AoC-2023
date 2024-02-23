@@ -1,20 +1,23 @@
-;;;day5
-(ql:quickload '(:alexandria
-                :defclass-std
-                :str))
+;;;day5 
+(eval-when (:compile-toplevel :load-toplevel)
+  (ql:quickload '(:alexandria
+                  :defclass-std
+                  :str)))
 
-(import '(alexandria:assoc-value
-          alexandria:compose
-          alexandria:curry
-          alexandria:last-elt
-          defclass-std:defclass/std))
+(eval-when (:compile-toplevel :execute)
+  (import '(alexandria:assoc-value
+            alexandria:compose
+            alexandria:curry
+            alexandria:last-elt
+            defclass-std:defclass/std)))
 
-(defconstant +day-number+ 5)
-(defconstant +working-dir+ (uiop:truenamize "~/aoc_2023/"))
-(defconstant +input-name-template+ "2023d~dinput.txt")
-
-(defconstant +test-input+ (str:split #\newline  
-                           "seeds: 79 14 55 13
+(eval-when (:compile-toplevel :execute)
+  (defconstant +day-number+ 5)
+  (defconstant +working-dir+ (uiop:truenamize "~/OneDrive - Emerson/AoC/aoc2023/"))
+  (defconstant +input-name-template+ "2023d~dinput.txt")
+  
+  (defconstant +test-input+ (str:split #\newline  
+                                       "seeds: 79 14 55 13
 
 seed-to-soil map:
 50 98 2
@@ -42,7 +45,11 @@ light-to-temperature map:
 
 temperature-to-humidity map:
 0 69 1
-1 0 69"))
+1 0 69
+
+humidity-to-location map:
+60 56 37
+56 93 4")))
 
 (defclass/std range nil
   ((start end :type fixnum :with :std 0)
@@ -198,8 +205,9 @@ temperature-to-humidity map:
          (data (parse-input input-lines)))
     (fresh-line)
     (princ "part 1: ")
-    (princ (reduce #'+ (p1 data)))
-    (fresh-line)
-    (princ "part 2: ")
-    (fresh-line)
-    (princ (reduce #'+ (p2 data)))))
+    (princ (p1 data))
+    ;; (fresh-line)
+    ;; (princ "part 2: ")
+    ;; (fresh-line)
+    ;; (princ (reduce #'+ (p2 data)))
+    ))
