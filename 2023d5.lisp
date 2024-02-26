@@ -4,14 +4,14 @@
                   :defclass-std
                   :str)))
 
-(eval-when (:compile-toplevel :execute)
+(eval-when (:compile-toplevel :load-toplevel)
   (import '(alexandria:assoc-value
             alexandria:compose
             alexandria:curry
             alexandria:last-elt
             defclass-std:defclass/std)))
 
-(eval-when (:compile-toplevel :execute)
+(eval-when (:compile-toplevel)
   (defconstant +day-number+ 5)
   (defconstant +working-dir+ (uiop:truenamize "~/OneDrive - Emerson/AoC/aoc2023/"))
   (defconstant +input-name-template+ "2023d~dinput.txt")
@@ -162,6 +162,8 @@ humidity-to-location map:
         (range-translate map-found input)
         input)))
 
+(defmethod do-mapping )
+
 (defun parse-input (lines)
   (let ((seeds (mapcar #'parse-integer (rest (str:split-omit-nulls #\space (first lines)))))
         (map-alist ())
@@ -196,8 +198,12 @@ humidity-to-location map:
                          do (setf val (do-mapping map val)) ;make a new method to call here?
                          finally (return val)))))
 
-(defun p2 ()
-  )
+(defun p2 (data)
+  (let ((seeds (loop for (s l) on (first data)
+                        by #'cddr
+                        collecting (list s l)))
+        (maps (second data)))
+    (apply #'min (mapcar #'f seeds))))
 
 (defun main ()
   (let* ((infile-name (format nil +input-name-template+ +day-number+))
