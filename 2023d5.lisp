@@ -4,7 +4,7 @@
                   :defclass-std
                   :str)))
 
-(eval-when (:compile-toplevel :load-toplevel)
+(eval-when (:compile-toplevel)
   (import '(alexandria:assoc-value
             alexandria:compose
             alexandria:curry
@@ -72,8 +72,7 @@ humidity-to-location map:
 (defmethod print-object ((rng range) stream)
   (print-unreadable-object (rng stream :type t)
     (with-slots (start end length) rng
-      (format stream "start: ~a, end: ~a, length: ~a" start end length))))
-
+      (format stream "~a - ~a, length: ~a" start end length))))
 ;; (defmethod (setf range-length) :after (new (rng range))
 ;;   (declare (ignore new))
 ;;   ":after method to signal error if setting length by itself"
@@ -116,6 +115,15 @@ humidity-to-location map:
 (defclass/std range-mapping nil
   ((input-range output-range :type range :r)))
 
+(defmethod print-object ((rng-map range-mapping) stream)
+  (print-unreadable-object (rng-map stream :type t)
+    (with-slots ((in input-range) (out output-range)) rng-map
+      (with-slots ((in-start start) (in-end end)) in
+        (with-slots ((out-start start) (out-end end)) out
+            (format stream "in: ~a - ~a; out: ~a - ~a"
+                    in-start in-end
+                    out-start out-end))))))
+
 (defmethod initialize-instance ((rm range-mapping) &key (in-start 0) (out-start 0) (length 0))
   (with-slots ((in input-range) (out output-range)) rm
     (setf in (make-instance 'range :start in-start :length length))
@@ -143,6 +151,11 @@ humidity-to-location map:
   ((in-name out-name :type string)
    (mappings :type cons :std ())))
 
+(defmethod print-object ((map-entry garden-map-entry) stream)
+  (print-unreadable-object (map-entry stream :type t)
+    (with-slots (in-name out-name) map-entry
+      (format stream "~a-to-~a" in-name out-name))))
+
 (defmethod map-entry-sort ((gm garden-map-entry))
   (setf (mappings gm) (sort (mappings gm) #'range< :key #'input-range)))
 
@@ -162,7 +175,10 @@ humidity-to-location map:
         (range-translate map-found input)
         input)))
 
-(defmethod do-mapping )
+(defmethod do-mapping ((gm garden-map-entry) (input cons))
+  "take list of ranges to map - return list of outputs"
+  
+  )
 
 (defun parse-input (lines)
   (let ((seeds (mapcar #'parse-integer (rest (str:split-omit-nulls #\space (first lines)))))
@@ -191,8 +207,8 @@ humidity-to-location map:
   (let ((seeds (first data))
         (maps (second data)))
     (loop for seed in seeds
-          minimize (loop for mapname = "seed" then (out-name (assoc-value maps mapname :test #'string=))
-                         for map = (assoc-value maps mapname :test #'string=) ; this is a list not a single value
+          minimize (loop for map = (assoc-value maps mapname :test #'string=) ; this is a list not a single value
+                         for mapname = "seed" then (out-name map)
                          with val = seed
                          until (string= mapname "loca")
                          do (setf val (do-mapping map val)) ;make a new method to call here?
@@ -203,7 +219,14 @@ humidity-to-location map:
                         by #'cddr
                         collecting (list s l)))
         (maps (second data)))
-    (apply #'min (mapcar #'f seeds))))
+    (apply #'min (mapcar #'(lambda (seed-range)
+                             (loop for map = (assoc-value maps mapname :test #'string=)
+                                   for mapname = "seed" then (out-name map)
+                                   with in-queue = (list seed-range)
+                                     until (string= mapname "loca")
+                                     do (setf in-queue (do-mapping map in-queue)) 
+                                     finally (return in-queue)))
+                         seeds))))
 
 (defun main ()
   (let* ((infile-name (format nil +input-name-template+ +day-number+))
