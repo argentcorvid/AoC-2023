@@ -87,9 +87,9 @@ humidity-to-location map:
       (error "Only one of 'end' or 'length' may be specified in initializing ~S" rng)
       (progn
         (when end-bound?
-          (setf length (- end start)))
+          (setf length (- end start -1)))
         (when len-bound?
-          (setf end (+ length start)))))))
+          (setf end (+ length start -1)))))))
 
 (defmethod range< ((r1 range) (r2 range))
   (< (range-start r1) (range-start r2)))
@@ -177,8 +177,35 @@ humidity-to-location map:
 
 (defmethod do-mapping ((gm garden-map-entry) (input cons))
   "take list of ranges to map - return list of outputs"
-  
-  )
+  (let ((output-ranges ())
+        (input-ranges input))
+    (dolist (current-map
+             (mappings gm)
+             (sort (nconc output-ranges input-ranges)
+                   #'range<))
+      (with-slots ((map-in input-range) (map-out output-range)) current-map
+          (with-slots ((map-in-start start) (map-in-end end)) map-in
+            (with-slots ((map-out-start start)) map-out
+              (let (temp)
+                (setf input-ranges
+                      (dolist (range-in input-ranges temp)
+                        (with-slots ((in-start start) (in-end end)) range-in
+                          (let ((left-start  in-start)
+                                (left-end    (min in-end map-in-end))
+                                (mid-start   (max in-start map-in-start))
+                                (mid-end     (min map-in-end in-end))
+                                (right-start (max map-in-end in-start))
+                                (right-end   in-end))
+                            (when (< left-start left-end)
+                              (push (make-instance 'range :start left-start :end left-end) temp))
+                            (when (< mid-start mid-end)
+                              (push (make-instance 'range
+                                                   :start (+ (- mid-start map-in-start) map-out-start)
+                                                   :end (+ (- mid-end map-in-start) map-out-start))
+                                    output-ranges))
+                            (when (< right-start right-end)
+                              (push (make-instance 'range :start right-start :end right-end) temp)))))))))))
+    ))
 
 (defun parse-input (lines)
   (let ((seeds (mapcar #'parse-integer (rest (str:split-omit-nulls #\space (first lines)))))
@@ -207,8 +234,8 @@ humidity-to-location map:
   (let ((seeds (first data))
         (maps (second data)))
     (loop for seed in seeds
-          minimize (loop for map = (assoc-value maps mapname :test #'string=) ; this is a list not a single value
-                         for mapname = "seed" then (out-name map)
+          minimize (loop for mapname = "seed" then (out-name map)
+                         for map = (assoc-value maps mapname :test #'string=) ; this is a list not a single value
                          with val = seed
                          until (string= mapname "loca")
                          do (setf val (do-mapping map val)) ;make a new method to call here?
@@ -217,12 +244,12 @@ humidity-to-location map:
 (defun p2 (data)
   (let ((seeds (loop for (s l) on (first data)
                         by #'cddr
-                        collecting (list s l)))
+                        collecting (make-instance 'range :start s :length l)))
         (maps (second data)))
     (apply #'min (mapcar #'(lambda (seed-range)
-                             (loop for map = (assoc-value maps mapname :test #'string=)
-                                   for mapname = "seed" then (out-name map)
-                                   with in-queue = (list seed-range)
+                             (loop for mapname = "seed" then (out-name map)
+                                   for map = (assoc-value maps mapname :test #'string=)
+                                   for in-queue = (list seed-range)
                                      until (string= mapname "loca")
                                      do (setf in-queue (do-mapping map in-queue)) 
                                      finally (return in-queue)))
