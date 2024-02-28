@@ -181,8 +181,7 @@ humidity-to-location map:
         (input-ranges input))
     (dolist (current-map
              (mappings gm)
-             (sort (nconc output-ranges input-ranges)
-                   #'range<))
+             (nconc output-ranges input-ranges))
       (with-slots ((map-in input-range) (map-out output-range)) current-map
           (with-slots ((map-in-start start) (map-in-end end)) map-in
             (with-slots ((map-out-start start)) map-out
@@ -191,7 +190,7 @@ humidity-to-location map:
                       (dolist (range-in input-ranges temp)
                         (with-slots ((in-start start) (in-end end)) range-in
                           (let ((left-start  in-start)
-                                (left-end    (min in-end map-in-end))
+                                (left-end    (min in-end map-in-start))
                                 (mid-start   (max in-start map-in-start))
                                 (mid-end     (min map-in-end in-end))
                                 (right-start (max map-in-end in-start))
