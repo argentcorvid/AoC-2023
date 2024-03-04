@@ -1,12 +1,16 @@
 ;;;dayx
-(ql:quickload :uiop)
+(eval-when (:compile-toplevel :load-toplevel :execute) (ql:quickload (:str :alexandria)))
 
-(defconstant +day-number+ x)
-(defconstant +working-dir+ (uiop:truenamize "~/aoc_2023/"))
-(defconstant +input-name-template+ "2023d~dinput.txt")
+(eval-when (:compile-toplevel)
 
-(defconstant +test-input+
-  '())
+  (import '())
+  
+  (defconstant +day-number+ x)
+  (defconstant +working-dir+ (uiop:truenamize "~/aoc_2023/"))
+  (defconstant +input-name-template+ "2023d~dinput.txt")
+
+  (defconstant +test-input+
+    '()))
 
 (defun parse-input (lines)
   )
